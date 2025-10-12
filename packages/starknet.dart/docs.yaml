@@ -1,0 +1,35 @@
+name: Starknet.dart
+description: The Mobile SDK for Starknet ✨
+logo: "/assets/logo.webp"
+anchors:
+  - title: Telegram
+    icon: telegram
+    link: https://t.me/+CWezjfLIRYc0MDY0
+sidebar:
+  - - Getting Started
+    - "/"
+  - - Examples
+    - - - NFT Marketplace
+        - "/examples/nft-marketplace"
+      - - Mobile Wallet
+        - "/examples/mobile-wallet"
+      - - Starknet CLI
+        - "/examples/starknet-cli"
+      - - Starknet Counter
+        - "/examples/starknet-counter"
+  - - Packages
+    - - - Starknet
+        - "/packages/starknet"
+      - - Starknet Provider
+        - "/packages/starknet-provider"
+      - - Wallet Kit
+        - "/packages/wallet-kit"
+      - - Secure Store
+        - "/packages/secure-store"
+      - - Avnu Paymaster Provider
+        - "/packages/avnu_provider"
+      - - Starknet Builder
+        - "/packages/starknet-builder"
+  - - How to Contribute
+    - "/how-to-contribute"
+

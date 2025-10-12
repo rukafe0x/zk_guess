@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  pull_request:
+
+env:
+  STARKNET_RPC: http://localhost:5050
+  STARKNET_WSS: wss://sepolia-pathfinder-rpc.spaceshard.io/rpc/v0_8
+  DEVNET_DUMP_PATH: /devnet-dump.json
+  AVNU_RPC: https://sepolia.api.avnu.fi
+  STARKLI_VERSION: 0.4.2
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flutter setup
+        uses: ./.github/actions/flutter-setup
+      - uses: bluefireteam/melos-action@v3
+      - run: melos bootstrap
+      - run: melos format:check
+      - run: melos analyze
+
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flutter setup
+        uses: ./.github/actions/flutter-setup
+      - uses: bluefireteam/melos-action@v3
+      - run: melos bootstrap
+      - run: melos test:dart:unit
+
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flutter setup
+        uses: ./.github/actions/flutter-setup
+      - uses: bluefireteam/melos-action@v3
+      - run: melos bootstrap
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v3
+      - name: Install starkli
+        run: melos asdf:starkli
+      - name: Retrieve starknet devnet version
+        shell: bash
+        run: |
+          grep STARKNET_DEVNET_VERSION .env.devnet | sed 's|export ||g' >> $GITHUB_ENV
+      - name: Run starknet-devnet as a background process
+        run: |
+          docker run -d --name starknet-devnet \
+            -v ${{ github.workspace }}/assets/devnet-dump.json:$DEVNET_DUMP_PATH \
+            -p 5050:5050 \
+            --entrypoint tini \
+            shardlabs/starknet-devnet-rs:$STARKNET_DEVNET_VERSION -- \
+            starknet-devnet --host 0.0.0.0 --seed 0 --dump-path $DEVNET_DUMP_PATH --state-archive-capacity full
+            sleep 3  # Wait for 3 seconds for the Docker container to initialize
+      - name: Devnet setup
+        uses: ./.github/actions/devnet-setup
+      - run: melos test:dart:integration
+      - name: Cleanup
+        if: always()
+        run: docker stop starknet-devnet && docker rm starknet-devnet
+      # - name: Setup SSH if failure
+      #   if: failure()
+      #   uses: lhotari/action-upterm@v1
+
+  check-contracts-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            contracts_dir: 
+              - 'contracts/v2.6.2/**'
+      - name: Flutter setup
+        uses: ./.github/actions/flutter-setup
+      - uses: bluefireteam/melos-action@v3
+      - name: Run scarb check
+        if: steps.changes.outputs.contracts_dir == 'true'
+        run: melos test:dart:unit
