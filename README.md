@@ -20,3 +20,8 @@ Notice: This is a full functional app in Sepolia but with a UI as work in progre
 7. Contract will check if number has been guessed and will transfer the reward to the winner
 
 Note: If your friend doesn't send the proof, he will loss automatically after 1000 blocks and you could take the reward.
+
+## TO DO
+1. Improve UI
+2. Add gassless transactions (to grant free transaction to first users)
+3. Communicate apps thru indexers
