@@ -25,3 +25,7 @@ Note: If your friend doesn't send the proof, he will loss automatically after 10
 1. Improve UI
 2. Add gassless transactions (to grant free transaction to first users)
 3. Communicate apps thru indexers
+
+## ARCHITECTURE
+
+![ESP Arch](assets/arch.png)
