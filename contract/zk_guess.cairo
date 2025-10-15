@@ -51,6 +51,7 @@ mod Groth16VerifierBN254 {
     use starknet::get_caller_address;
     use core::traits::TryInto;
     use starknet::{get_block_info};
+    use starknet::get_contract_address;
 
     const ECIP_OPS_CLASS_HASH: felt252 = 0x146ee805dd0252256484a6001dc932dd940b1787c0f24e65629f4f6645f0692;
 
@@ -76,12 +77,19 @@ mod Groth16VerifierBN254 {
     #[derive(Drop, PartialEq, starknet::Event)]
     pub enum Event {
         Intent: Intent,
+        PublicInput: PublicInput,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
     pub struct Intent {
         #[key]
-        pub intent: u256,
+        pub intent: ByteArray,
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    pub struct PublicInput {
+        #[key]
+        pub public_input: u256,
     }
 
     #[abi(embed_v0)]
@@ -105,6 +113,13 @@ mod Groth16VerifierBN254 {
                     panic!("Game already has two players");
                 }
             }
+            // transfer 1 fri strk from the caller
+            let strk_token_dispatcher = ERC20ABIDispatcher {
+                contract_address: 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d.try_into().unwrap() // STRK Contract Address
+            };
+            // set reward to 1 fri strk
+            self.game_id.entry(game_id).reward.write(1); // set reward to 1 fri strk
+            strk_token_dispatcher.transferFrom(get_caller_address(), get_contract_address(), self.game_id.entry(game_id).reward.read());
         }
 
         fn send_intent(ref self: ContractState, game_id: u256, intent: u256) {
@@ -119,7 +134,8 @@ mod Groth16VerifierBN254 {
                 game.last_intent2_blocknumber.write(get_block_info().block_number.into());
             }
             // Write intent as an event
-            //Event::Intent(Intent { intent }).emit();
+            let text_for_emit=format!("Intent sent: {}", intent);
+            self.emit(Intent { intent: text_for_emit.try_into().unwrap() });
         }
 
         fn claim_reward(ref self: ContractState, game_id: u256) {
@@ -155,34 +171,52 @@ mod Groth16VerifierBN254 {
             // TODO: Implement the function
             // First verify the proof
             let player_address=get_caller_address();
+            let reward=self.game_id.entry(game_id).reward.read();
             // get the opponent address depending on the player calling the function 
             // if messender is player1, then opponent is player2
             // if messender is player2, then opponent is player1
             let mut opponent_address=self.game_id.entry(game_id).player2.read();
-            let mut commitment=self.game_id.entry(game_id).commitment2.read();
+            let mut commitment=self.game_id.entry(game_id).commitment1.read();
             if player_address==opponent_address {
                 opponent_address=self.game_id.entry(game_id).player1.read();
-                commitment=self.game_id.entry(game_id).commitment1.read();
+                commitment=self.game_id.entry(game_id).commitment2.read();
             }
             // verify the proof and get the public inputs
             let public_inputs=self.verify_groth16_proof_bn254(full_proof_with_hints);
             match public_inputs {
                 Some(public_inputs) => {
-                    //let public_inputs_span=public_inputs.span();
-                    // Then verify the commitment
-                    if commitment==*public_inputs.at(1) {
-                        // Send the reward to the opponent
-                        let reward=self.game_id.entry(game_id).reward.read();
-                        let strk_token_dispatcher = ERC20ABIDispatcher {
-                            contract_address: 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d.try_into().unwrap() // STRK Contract Address
-                        };
-                        strk_token_dispatcher.transfer(opponent_address, reward);
-                    } else {
-                        panic!("Commitment is invalid");
+                    // At his point proof is valid
+                    let mut index = 0;
+                    while index < public_inputs.len() {
+                        self.emit(PublicInput { public_input: *public_inputs.at(index) });
+                        index += 1;
                     }
+                    // Verify the commitment is correct and player is not cheating
+                    if (commitment==*public_inputs.at(1)) {
+                        // Verify proof result was successful
+                        if (*public_inputs.at(0)==1) {
+                            // Send the reward to the opponent
+                            let strk_token_dispatcher = ERC20ABIDispatcher {
+                                contract_address: 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d.try_into().unwrap() // STRK Contract Address
+                            };
+                            strk_token_dispatcher.transfer(opponent_address, reward);
+                            // Emit event that winner is the opponent
+                            // just first 4 bytes of opponent_address
+                            let felt_addr: felt252 = opponent_address.into();
+                            let text_for_emit=format!("Your opponent has read your mind!!!. He wins: {}", felt_addr);
+                            self.emit(Intent { intent: text_for_emit.try_into().unwrap() });
+                        } else {
+                            // Emit event that intent is incorrect
+                            let text_for_emit=format!("Intent is incorrect: {}", *public_inputs.at(2));
+                            self.emit(Intent { intent: text_for_emit.try_into().unwrap() });
+                        }
+                    } else {
+                        panic!("Commitment is incorrect");
+                    }
+                    return;
                 },
                 None => {
-                    panic!("Public inputs are None");
+                    panic!("Proof is invalid");
                 }
             }
         }
