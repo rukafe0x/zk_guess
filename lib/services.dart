@@ -73,14 +73,25 @@ Future<Account> getSignerAccount() async {
 // invoke zk_guess contract to register the commitment as
 // specified in zk_guess.cairo
 // invoke the contract with the hash as the calldata
-Future<String> invokeRegisterCommitment(Uint256 gameId, Uint256 hash) async {
+Future<String> invokeCreateGame(
+  Uint256 gameId,
+  Uint256 hash,
+  Uint256 reward,
+) async {
   final account = await getSignerAccount();
   final maxFee = await account.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
-        entryPointSelector: getSelectorByName("register_commitment"),
-        calldata: [gameId.low, gameId.high, hash.low, hash.high],
+        entryPointSelector: getSelectorByName("create_game"),
+        calldata: [
+          gameId.low,
+          gameId.high,
+          hash.low,
+          hash.high,
+          reward.low,
+          reward.high,
+        ],
       ),
     ],
   );
@@ -88,8 +99,15 @@ Future<String> invokeRegisterCommitment(Uint256 gameId, Uint256 hash) async {
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
-        entryPointSelector: getSelectorByName("register_commitment"),
-        calldata: [gameId.low, gameId.high, hash.low, hash.high],
+        entryPointSelector: getSelectorByName("create_game"),
+        calldata: [
+          gameId.low,
+          gameId.high,
+          hash.low,
+          hash.high,
+          reward.low,
+          reward.high,
+        ],
       ),
     ],
     incrementNonceIfNonceRelatedError: true,
@@ -207,5 +225,116 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
   await waitForAcceptance(transactionHash: txHash, provider: provider);
 
   print('Approving entry fee TX: $txHash');
+  return txHash;
+}
+
+Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("write_intent"),
+        calldata: [gameId.low, gameId.high, intent.low, intent.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("write_intent"),
+        calldata: [gameId.low, gameId.high, intent.low, intent.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke write intent"),
+  );
+  print('Invoking write intent TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  return txHash;
+}
+
+Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("join_game"),
+        calldata: [gameId.low, gameId.high, commitment.low, commitment.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("join_game"),
+        calldata: [gameId.low, gameId.high, commitment.low, commitment.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke join game"),
+  );
+  print('Invoking join game TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  return txHash;
+}
+
+Future<String> invokeClaimReward(Uint256 gameId) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("claim_reward"),
+        calldata: [gameId.low, gameId.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("claim_reward"),
+        calldata: [gameId.low, gameId.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke claim reward"),
+  );
+  print('Invoking claim reward TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
   return txHash;
 }

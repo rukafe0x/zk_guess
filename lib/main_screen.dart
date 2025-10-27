@@ -6,9 +6,11 @@ import 'package:http/http.dart' as http;
 import 'package:starknet/starknet.dart';
 import 'package:starknet_provider/starknet_provider.dart';
 import 'package:poseidon/poseidon.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services.dart';
 import 'package:mopro_flutter/mopro_flutter.dart';
 import 'package:mopro_flutter/mopro_types.dart';
+import 'dart:async';
 
 void main() {
   runApp(MainScreen(accountAddress: '', accountNickname: ''));
@@ -35,6 +37,12 @@ class _MainScreenState extends State<MainScreen>
   bool isProving = false;
   Exception? _error;
   late TabController _tabController;
+
+  // WebSocket connection and game state
+  StarknetWebSocketChannel? _wsChannel;
+  Map<String, dynamic>? gameState;
+  bool _isConnected = false;
+  String? _eventSubscriptionId;
 
   // Controllers to handle user input
   final TextEditingController _controllerGameId =
@@ -66,12 +74,253 @@ class _MainScreenState extends State<MainScreen>
     //_controllerY.text = "42"; // Guess
     //_controllerOut.text = "55";
     _tabController = TabController(length: 1, vsync: this);
+
+    // Initialize WebSocket connection
+    _initializeWebSocketConnection();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _closeWebSocketConnection();
     super.dispose();
+  }
+
+  // Initialize WebSocket connection to Starknet
+  Future<void> _initializeWebSocketConnection() async {
+    try {
+      final contractAddress = dotenv.env['CONTRACT_ADDRESS'];
+      if (contractAddress == null || contractAddress.isEmpty) {
+        print('CONTRACT_ADDRESS not found in .env file');
+        return;
+      }
+
+      // Get WebSocket URL from environment
+      final nodeUri = dotenv.env['STARKNET_NODE_URI'];
+      if (nodeUri == null || nodeUri.isEmpty) {
+        throw Exception('STARKNET_NODE_URI not found in .env file');
+      }
+
+      // Convert HTTP URL to WebSocket URL
+      final wsUrl = nodeUri
+          .replaceFirst('https://', 'wss://')
+          .replaceFirst('http://', 'ws://');
+
+      // Create WebSocket channel
+      _wsChannel = StarknetWebSocketChannel(nodeUrl: wsUrl);
+
+      print('Connecting to WebSocket...');
+
+      // Wait for connection
+      await _wsChannel!.waitForConnection();
+
+      // Check connection status after waiting
+      _isConnected = _wsChannel!.isConnected();
+
+      if (!_isConnected) {
+        throw Exception('Failed to establish WebSocket connection');
+      }
+
+      // Update UI state to reflect connection status
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+        });
+      }
+
+      // Subscribe to contract events
+      await _subscribeToContractEvents(contractAddress);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Connected to Starknet WebSocket'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error connecting to WebSocket: $e');
+      if (mounted) {
+        setState(() {
+          _isConnected = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to connect to WebSocket: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Subscribe to contract events
+  Future<void> _subscribeToContractEvents(String contractAddress) async {
+    try {
+      // Set up event handler (events are already filtered by contract address)
+      _wsChannel!.onEvents = (channel, response) async {
+        print('Received event: ${response.result}');
+        _handleContractEvent(response.result);
+      };
+
+      // Subscribe to events with contract address filter
+      final contractAddressFelt = Felt.fromHexString(contractAddress);
+      final subscriptionResult = await _wsChannel!.subscribeEvents(
+        contractAddressFelt, // fromAddress
+        [], // keys (empty for all events from this contract)
+        null, // block identifier (null for latest block)
+      );
+
+      subscriptionResult.when(
+        result: (subId) {
+          _eventSubscriptionId = subId;
+          print('Successfully subscribed to events with ID: $subId');
+        },
+        error: (error) {
+          print('Error subscribing to events: ${error.message}');
+          _isConnected = false;
+        },
+      );
+    } catch (e) {
+      print('Error subscribing to events: $e');
+    }
+  }
+
+  // Handle incoming contract events
+  void _handleContractEvent(dynamic event) {
+    try {
+      // The event is already the result from the WebSocket response
+      final eventData = event;
+
+      // Extract game_id (u256), status (felt), and value (felt) from the event data
+      final gameId = _extractGameIdFromEvent(eventData);
+      final status = _extractStatusFromEvent(eventData);
+      final value = _extractValueFromEvent(eventData);
+
+      // Update game state with event data
+      setState(() {
+        gameState = {
+          'lastEvent': eventData,
+          'timestamp': DateTime.now().toIso8601String(),
+          'gameId': gameId,
+          'status': status,
+          'value': value,
+          'transactionHash': _extractTransactionHash(eventData),
+          'blockNumber': _extractBlockNumber(eventData),
+        };
+      });
+
+      // Show notification to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Game event received - Game ID: $gameId, Status: $status, Value: $value',
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      print('Game state updated: $gameState');
+    } catch (e) {
+      print('Error handling contract event: $e');
+    }
+  }
+
+  // Extract game_id (u256) from event data
+  String? _extractGameIdFromEvent(dynamic eventData) {
+    if (eventData is WssSubscriptionEventResult) {
+      return eventData.keys[1].toHexString();
+    }
+    return null;
+  }
+
+  // Extract status (felt) from event data
+  String? _extractStatusFromEvent(dynamic eventData) {
+    if (eventData is WssSubscriptionEventResult) {
+      Felt felt = eventData.data[0];
+      return felt.toSymbol();
+    }
+    return null;
+  }
+
+  // Extract value (felt) from event data
+  String? _extractValueFromEvent(dynamic eventData) {
+    if (eventData is WssSubscriptionEventResult) {
+      return eventData.data[1].toHexString();
+    }
+    return null;
+  }
+
+  // Extract transaction hash from event data
+  String? _extractTransactionHash(dynamic eventData) {
+    if (eventData is WssSubscriptionEventResult) {
+      return eventData.transactionHash.toHexString();
+    }
+    return null;
+  }
+
+  // Extract block number from event data
+  String? _extractBlockNumber(dynamic eventData) {
+    if (eventData is WssSubscriptionEventResult) {
+      return eventData.blockNumber.toString();
+    }
+    return null;
+  }
+
+  // Calculate Poseidon hash for commitment
+  void _calculateCommitment() {
+    try {
+      if (_controllerX.text.isEmpty || _controllerSalt.text.isEmpty) {
+        return;
+      }
+
+      // Convert inputs to BigInt
+      final x = BigInt.parse(_controllerX.text);
+      final salt = BigInt.parse(_controllerSalt.text);
+
+      // Calculate Poseidon hash using SNARK-compatible implementation
+      final hash = poseidon2([x, salt]);
+
+      // Update the commitment field
+      setState(() {
+        _controllerH.text = hash.toString();
+      });
+
+      print("Poseidon hash calculated: $hash");
+    } catch (e) {
+      print("Error calculating Poseidon hash: $e");
+      setState(() {
+        _error = Exception("Error calculating hash: $e");
+      });
+    }
+  }
+
+  // Close WebSocket connection
+  Future<void> _closeWebSocketConnection() async {
+    try {
+      if (_eventSubscriptionId != null && _wsChannel != null) {
+        // Unsubscribe from events first
+        await _wsChannel!.unsubscribeEvents();
+        _eventSubscriptionId = null;
+      }
+
+      if (_wsChannel != null && _wsChannel!.isConnected()) {
+        await _wsChannel!.disconnect();
+        await _wsChannel!.waitForDisconnect();
+      }
+
+      if (mounted) {
+        setState(() {
+          _isConnected = false;
+        });
+      }
+      print('WebSocket connection closed');
+    } catch (e) {
+      print('Error closing WebSocket: $e');
+    }
   }
 
   Widget _buildCircomTab() {
@@ -80,6 +329,75 @@ class _MainScreenState extends State<MainScreen>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Connection status indicator
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _isConnected ? Icons.wifi : Icons.wifi_off,
+                      color: _isConnected ? Colors.green : Colors.red,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isConnected ? 'Connected to Starknet' : 'Disconnected',
+                      style: TextStyle(
+                        color: _isConnected ? Colors.green : Colors.red,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                // Display latest event status
+                if (gameState != null && gameState!['status'] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Latest Status: ${gameState!['status']}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Game state display
+          if (gameState != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Game State:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (gameState!['gameId'] != null)
+                        Text('Game ID: ${gameState!['gameId']}'),
+                      if (gameState!['status'] != null)
+                        Text('Status: ${gameState!['status']}'),
+                      if (gameState!['value'] != null)
+                        Text('Value: ${gameState!['value']}'),
+                      if (gameState!['transactionHash'] != null)
+                        Text('TX Hash: ${gameState!['transactionHash']}'),
+                      if (gameState!['blockNumber'] != null)
+                        Text('Block: ${gameState!['blockNumber']}'),
+                      Text('Time: ${gameState!['timestamp']}'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (isProving) const CircularProgressIndicator(),
           if (_error != null)
             Padding(
@@ -194,30 +512,25 @@ class _MainScreenState extends State<MainScreen>
                 }
 
                 try {
-                  // Convert inputs to BigInt
+                  // Calculate commitment hash
+                  _calculateCommitment();
+
+                  // Get the calculated hash
                   final gameId = BigInt.parse(_controllerGameId.text);
-                  final x = BigInt.parse(_controllerX.text);
-                  final salt = BigInt.parse(_controllerSalt.text);
-
-                  // Calculate Poseidon hash using SNARK-compatible implementation
-                  final hash = poseidon2([x, salt]);
-
-                  // Update the commitment field
-                  setState(() {
-                    _controllerH.text = hash.toString();
-                  });
-
-                  print("Poseidon hash calculated: $hash");
-                  // now invoke invokeRegisterCommitment from services.dart with game ID
+                  final hash = BigInt.parse(_controllerH.text);
+                  // now invoke invokeCreateGame from services.dart with game ID
                   final gameIdU256 = Uint256.fromBigInt(
                     BigInt.parse(gameId.toString()),
                   );
                   final hashU256 = Uint256.fromBigInt(
                     BigInt.parse(hash.toString()),
                   );
-                  final txHash = await invokeRegisterCommitment(
+                  final txHash = await invokeCreateGame(
                     gameIdU256,
                     hashU256,
+                    Uint256.fromBigInt(
+                      BigInt.parse("1000000000000000000"),
+                    ), // 1 STRK
                   );
                   // once done, display a snackbar with the message "Commitment registered successfully"
                   //and the txHash
@@ -235,25 +548,67 @@ class _MainScreenState extends State<MainScreen>
                   });
                 }
               },
-              child: const Text(
-                "Register your secret number in Starknet(commitment)",
-              ),
+              child: const Text("Create game with commitment"),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: OutlinedButton(
-              onPressed: () {
+              onPressed: () async {
+                if (_controllerGameId.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a Game ID')),
+                  );
+                  return;
+                }
+
+                try {
+                  // Calculate commitment hash
+                  _calculateCommitment();
+
+                  final gameId = BigInt.parse(_controllerGameId.text);
+                  final gameIdU256 = Uint256.fromBigInt(gameId);
+                  final hash = BigInt.parse(_controllerH.text);
+                  final commitment = Uint256.fromBigInt(hash);
+                  final txHash = await invokeJoinGame(gameIdU256, commitment);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Successfully joined game: $txHash"),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error joining game: $e")),
+                  );
+                }
+              },
+              child: const Text("Join the Game"),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: OutlinedButton(
+              onPressed: () async {
                 // Dummy button - does nothing
                 print("Send My Guess button pressed - dummy action");
-                //display a snackbar with the message "My guess sent successfully"
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Sending my guess to the opponent thru contract events. (NOT IMPLEMENTED YET)",
+                // invoke the write_intent function with the game id and the guess
+                try {
+                  final gameId = BigInt.parse(_controllerGameId.text);
+                  final guess = BigInt.parse(_controllerMyGuess.text);
+                  final gameIdU256 = Uint256.fromBigInt(gameId);
+                  final guessU256 = Uint256.fromBigInt(guess);
+                  final txHash = await invokeWriteIntent(gameIdU256, guessU256);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("My guess sent successfully: $txHash"),
                     ),
-                  ),
-                );
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error sending my guess: $e")),
+                  );
+                }
               },
               child: const Text("Send My Guess to the opponent."),
             ),
@@ -362,14 +717,7 @@ class _MainScreenState extends State<MainScreen>
                   // now, importing and using starknet.dart package from: https://github.com/focustree/starknet.dart
                   // verify the proof calling the verify_groth16_proof_bn254 function in
                   // sepolia contract
-                  final Felt contractAddress = Felt.fromHexString(
-                    "0x03972115bee003c73565bf05aac494701a03840d06d264807fdedf4d8a87ba8e",
-                  );
-                  final provider = JsonRpcProvider(
-                    nodeUri: Uri.parse(
-                      'https://starknet-sepolia.public.blastapi.io',
-                    ),
-                  );
+
                   // convert response.body to list of felt but
                   // without the [ and ] at the beginning and the end
                   // and without the quotes

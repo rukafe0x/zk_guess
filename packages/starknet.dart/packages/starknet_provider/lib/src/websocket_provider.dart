@@ -150,6 +150,7 @@ class StarknetWebSocketChannel {
       subscription = stream.listen(
         (data) {
           final message = jsonDecode(data);
+          print('Message: $message');
           if (message['id'] == sendId) {
             completer.complete(message);
             subscription.cancel();
@@ -338,6 +339,7 @@ class StarknetWebSocketChannel {
       if (keys != null) 'keys': keys,
       'block_id': getBlockId(blockIdentifier),
     });
+    print('Result: $result');
     return WssSubscribeEventsResponse.fromJson(result);
   }
 
@@ -499,7 +501,7 @@ class StarknetWebSocketChannel {
   /// Convert block identifier to the proper format
   dynamic getBlockId(dynamic blockIdentifier) {
     if (blockIdentifier == null) {
-      return 'latest';
+      return {'block_tag': 'latest'};
     } else if (blockIdentifier is int) {
       return {'block_number': blockIdentifier};
     } else if (blockIdentifier is String) {
