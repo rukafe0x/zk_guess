@@ -138,6 +138,7 @@ mod ZKPes {
             strk_token_dispatcher.transferFrom(get_caller_address(), get_contract_address(), game.reward.read());
             // set game status to joined    
             game.status.write('p1_turn');
+            game.last_intent_blocknumber.write(get_block_info().block_number.into());
             // emit event
             self.emit(Status { game_id: game_id, status: game.status.read(), value: get_caller_address().into() });
         }
@@ -158,6 +159,8 @@ mod ZKPes {
             } else {
                 panic!("It's not your turn");
             }
+            // Check if blocknumber has advanced 1000 blocks since last intent
+            assert(get_block_info().block_number-game.last_intent_blocknumber.read()<=1000, '1000 blocks since last intent');
             // write the intent
             game.last_intent.write(intent);
             game.last_intent_blocknumber.write(get_block_info().block_number.into());
@@ -187,6 +190,10 @@ mod ZKPes {
                     panic!("You are not player 2");
                 }
             }
+
+            // Check if blocknumber has advanced 1000 blocks since last intent
+            assert(get_block_info().block_number-game.last_intent_blocknumber.read()<=1000, '1000 blocks since last intent');
+
             let reward=self.games.entry(game_id).reward.read();
             // verify the proof and get the public inputs
             // calling this external contract function 
@@ -202,22 +209,23 @@ mod ZKPes {
             match public_inputs {
                 Some(public_inputs) => {
                     // At his point proof is valid
-                    let mut index = 0;
-                    while index < public_inputs.len() {
-                        self.emit(PublicInputs { public_input: *public_inputs.at(index).try_into().unwrap() });
-                        index += 1;
-                    }
+                    // let mut index = 0;
+                    // while index < public_inputs.len() {
+                    //     self.emit(PublicInputs { public_input: *public_inputs.at(index) });
+                    //     index += 1;
+                    // }
+                    // return;
+
                     // Verify the intent is correct and is not cheating
-                    assert(game.last_intent.read()!=*public_inputs.at(2), 'Intent is incorrect');
+                    assert(game.last_intent.read()==*public_inputs.at(2), 'Intent is incorrect');
                     // Verify the commitment is correct and player is not cheating
                     if game.status.read()=='p1_verify' {
-                        assert(game.commitment1.read()!=*public_inputs.at(1), 'Commitment p1 is incorrect');
+                        assert(game.commitment1.read()==*public_inputs.at(1), 'Commitment p1 is incorrect');
                     } else {
-                        assert(game.commitment2.read()!=*public_inputs.at(1), 'Commitment p2 is incorrect');
-                    }
-                    
-                    // Verify proof result was successful (opponent guessed correctly)
+                        assert(game.commitment2.read()==*public_inputs.at(1), 'Commitment p2 is incorrect');
+                    }                    
                     if (*public_inputs.at(0)==1) {
+                        // Opponent guessed correctly
                         // Change status to win_p1 or win_p2
                         if game.status.read()=='p1_verify' {
                             game.status.write('win_p2');
@@ -229,7 +237,7 @@ mod ZKPes {
                             self.emit(Status { game_id: game_id, status: game.status.read(), value: game.player1.read().into() });
                         }
                     } else {
-                        // Change status
+                        // Incorrect guess, change turn
                         if game.status.read()=='p1_verify' {
                             game.status.write('p1_turn');
                             // emit event
@@ -291,6 +299,3 @@ mod ZKPes {
         }
     }
 }
-
-
-    
