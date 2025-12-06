@@ -66,15 +66,16 @@ class _GameScreenState extends State<GameScreen>
     if (widget.initialGameId == '-1') {
       // Pre-calculate Game ID with random value
       _controllerGameId.text = Random().nextInt(4294967296).toString();
+      _myRole = 'Player 1';
     } else {
-      final gameid =
-          widget.initialGameId ?? Random().nextInt(4294967296).toString();
+      final gameid = widget.initialGameId.toString();
       _controllerGameId.text = gameid;
+      _myRole = 'Player 2';
     }
     _tabController = TabController(length: 1, vsync: this);
 
     // Only load x from storage if initialGameId is not -1
-    if (widget.initialGameId != '-1') { AQUI HAY ALGO RARO en -1
+    if ((_latestStatus != 'created') && (_latestStatus != null)) {
       _storage.read(key: 'x_${widget.accountAddress}').then((value) {
         if (value != null) {
           _controllerX.text = value;
@@ -356,8 +357,12 @@ class _GameScreenState extends State<GameScreen>
   }
 
   bool _shouldShowCreateGameButton() {
-    // Show create button when initialGameId is -1
-    return widget.initialGameId == '-1';
+    // Show create button when initialGameId is -1 and game not yet created
+    if (widget.initialGameId != '-1') return false;
+    final status = _currentStatus;
+    // Hide button after game is created
+    if (status != '') return false;
+    return true;
   }
 
   bool _shouldShowControllerX() {
@@ -449,12 +454,16 @@ class _GameScreenState extends State<GameScreen>
   }
 
   bool _shouldEnableControllerX() {
-    // Enable when initialGameId is -1 (create game mode)
-    if (widget.initialGameId == '-1') return true;
     final status = _currentStatus;
+    // Enable when initialGameId is -1 (create game mode) and game not yet created
+    if (widget.initialGameId == '-1') {
+      // Disable x after game is created (status is 'created' and user is Player 1)
+      if (status != '' && _myRole == 'Player 1') return false;
+      return true;
+    }
     if (status == null || status.isEmpty) return true;
     if (status == 'empty') return true;
-    if (status == 'created')
+    if (status == 'created' && _myRole == 'Player 2')
       return true; // Enable when game is created (Player 2 can join)
     return false;
   }
@@ -929,7 +938,11 @@ class _GameScreenState extends State<GameScreen>
                       hashU256,
                       Uint256.fromBigInt(BigInt.parse("1")),
                     );
-                    if (mounted) setState(() => _myRole = 'Player 1');
+                    if (mounted) {
+                      setState(() => _myRole = 'Player 1');
+                      // Refresh status to update UI
+                      _fetchLatestStatus();
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -1018,7 +1031,6 @@ class _GameScreenState extends State<GameScreen>
                     if (mounted) {
                       setState(() {
                         _myRole = 'Player 2';
-                        _controllerX.text = ''; // Clear x after joining
                       });
                     }
                     ScaffoldMessenger.of(context).showSnackBar(
