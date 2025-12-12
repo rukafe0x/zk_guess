@@ -33,7 +33,7 @@ int callWssEndpoint(WebSocketSink sink, String method, int sendId,
     method: method,
     params: params,
   );
-
+  print('Request: ${request.toJson()}');
   sink.add(jsonEncode(request));
   return usedId;
 }

@@ -100,7 +100,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
-    - assets/age_verification_0001.zkey
     - assets/guess_0001.zkey
     - assets/pes.png
     - .env

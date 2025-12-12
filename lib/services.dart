@@ -73,14 +73,25 @@ Future<Account> getSignerAccount() async {
 // invoke zk_guess contract to register the commitment as
 // specified in zk_guess.cairo
 // invoke the contract with the hash as the calldata
-Future<String> invokeRegisterCommitment(Uint256 gameId, Uint256 hash) async {
+Future<String> invokeCreateGame(
+  Uint256 gameId,
+  Uint256 hash,
+  Uint256 reward,
+) async {
   final account = await getSignerAccount();
   final maxFee = await account.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
-        entryPointSelector: getSelectorByName("register_commitment"),
-        calldata: [gameId.low, gameId.high, hash.low, hash.high],
+        entryPointSelector: getSelectorByName("create_game"),
+        calldata: [
+          gameId.low,
+          gameId.high,
+          hash.low,
+          hash.high,
+          reward.low,
+          reward.high,
+        ],
       ),
     ],
   );
@@ -88,8 +99,15 @@ Future<String> invokeRegisterCommitment(Uint256 gameId, Uint256 hash) async {
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
-        entryPointSelector: getSelectorByName("register_commitment"),
-        calldata: [gameId.low, gameId.high, hash.low, hash.high],
+        entryPointSelector: getSelectorByName("create_game"),
+        calldata: [
+          gameId.low,
+          gameId.high,
+          hash.low,
+          hash.high,
+          reward.low,
+          reward.high,
+        ],
       ),
     ],
     incrementNonceIfNonceRelatedError: true,
@@ -208,4 +226,204 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
 
   print('Approving entry fee TX: $txHash');
   return txHash;
+}
+
+Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("write_intent"),
+        calldata: [gameId.low, gameId.high, intent.low, intent.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("write_intent"),
+        calldata: [gameId.low, gameId.high, intent.low, intent.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke write intent"),
+  );
+  print('Invoking write intent TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  return txHash;
+}
+
+Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("join_game"),
+        calldata: [gameId.low, gameId.high, commitment.low, commitment.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("join_game"),
+        calldata: [gameId.low, gameId.high, commitment.low, commitment.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke join game"),
+  );
+  print('Invoking join game TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  return txHash;
+}
+
+Future<String> invokeClaimReward(Uint256 gameId) async {
+  final account = await getSignerAccount();
+  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("claim_reward"),
+        calldata: [gameId.low, gameId.high],
+      ),
+    ],
+  );
+  final response = await account.execute(
+    functionCalls: [
+      FunctionCall(
+        contractAddress: Felt.fromHexString(contractAddress),
+        entryPointSelector: getSelectorByName("claim_reward"),
+        calldata: [gameId.low, gameId.high],
+      ),
+    ],
+    incrementNonceIfNonceRelatedError: true,
+    maxAttempts: 5,
+    l1GasConsumed: maxFee.l1GasConsumed,
+    l1GasPrice: maxFee.l1GasPrice,
+    l2GasConsumed: maxFee.l2GasConsumed,
+    l2GasPrice: maxFee.l2GasPrice,
+    l1DataGasConsumed: maxFee.l1DataGasConsumed,
+    l1DataGasPrice: maxFee.l1DataGasPrice,
+  );
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to invoke claim reward"),
+  );
+  print('Invoking claim reward TX : $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  return txHash;
+}
+
+Future<Felt> getElapsedBlocks(Uint256 gameId) async {
+  final account = await getSignerAccount();
+  // Get current block number and the block number of the last intent
+  // then return the difference
+  final BlockNumber currentBlockNumber = await provider.blockNumber();
+  final current = currentBlockNumber.when(
+    result: (n) => BigInt.from(n),
+    error: (e) => throw Exception('blockNumber error: ${e.message}'),
+  );
+  // Get the block number of the last intent
+  // using get_game_properties from the contract
+  final contract = Contract(
+    account: account,
+    address: Felt.fromHexString(contractAddress),
+  );
+  final List<Felt> gameProperties = await contract.call("get_game_properties", [
+    gameId.low,
+    gameId.high,
+  ]);
+  final BigInt lastIntentBlockNumber = gameProperties[10].toBigInt();
+  return Felt(current - lastIntentBlockNumber);
+}
+
+// Game struct matching the Cairo game_struct
+class GameStruct {
+  final Felt player1;
+  final Felt player2;
+  final Uint256 commitment1;
+  final Uint256 commitment2;
+  final Uint256 reward;
+  final Uint256 lastIntent;
+  final BigInt lastIntentBlockNumber;
+  final String status;
+
+  GameStruct({
+    required this.player1,
+    required this.player2,
+    required this.commitment1,
+    required this.commitment2,
+    required this.reward,
+    required this.lastIntent,
+    required this.lastIntentBlockNumber,
+    required this.status,
+  });
+}
+
+// Get game properties and return GameStruct
+Future<GameStruct> getGameProperties(Uint256 gameId) async {
+  final account = await getSignerAccount();
+  final contract = Contract(
+    account: account,
+    address: Felt.fromHexString(contractAddress),
+  );
+  final List<Felt> gameProperties = await contract.call("get_game_properties", [
+    gameId.low,
+    gameId.high,
+  ]);
+
+  // Parse the response according to Cairo struct order:
+  // (ContractAddress, ContractAddress, u256, u256, u256, u256, u64, felt252)
+  // Which translates to: [player1, player2, commitment1.low, commitment1.high,
+  //                       commitment2.low, commitment2.high, reward.low, reward.high,
+  //                       last_intent.low, last_intent.high, last_intent_blocknumber, status]
+  return GameStruct(
+    player1: gameProperties[0],
+    player2: gameProperties[1],
+    commitment1: Uint256(low: gameProperties[2], high: gameProperties[3]),
+    commitment2: Uint256(low: gameProperties[4], high: gameProperties[5]),
+    reward: Uint256(low: gameProperties[6], high: gameProperties[7]),
+    lastIntent: Uint256(low: gameProperties[8], high: gameProperties[9]),
+    lastIntentBlockNumber: gameProperties[10].toBigInt(),
+    status: _feltToAscii(gameProperties[11]),
+  );
+}
+
+// Decode a Starknet felt (BigInt) to its ASCII string representation.
+// Removes leading zeros and stops at null bytes.
+String _feltToAscii(Felt felt) {
+  final hex = felt.toHexString().replaceFirst('0x', '');
+  if (hex.isEmpty) return '';
+  final buffer = StringBuffer();
+  for (int i = 0; i + 1 < hex.length; i += 2) {
+    final byte = int.parse(hex.substring(i, i + 2), radix: 16);
+    if (byte == 0) break; // stop at null terminator
+    buffer.writeCharCode(byte);
+  }
+  return buffer.toString();
 }
