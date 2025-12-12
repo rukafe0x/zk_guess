@@ -59,6 +59,8 @@ class _GameScreenState extends State<GameScreen>
       TextEditingController(); // Public: guess
   final TextEditingController _controllerMyGuess =
       TextEditingController(); // My guess of opponent's number
+  final TextEditingController _controllerBetAmount =
+      TextEditingController(); // Bet amount
 
   @override
   void initState() {
@@ -74,6 +76,9 @@ class _GameScreenState extends State<GameScreen>
     }
     _tabController = TabController(length: 1, vsync: this);
 
+    // Initialize bet amount to 1
+    _controllerBetAmount.text = '1';
+
     // Only load x from storage if initialGameId is not -1
     if ((_latestStatus != 'created') && (_latestStatus != null)) {
       _storage.read(key: 'x_${widget.accountAddress}').then((value) {
@@ -85,6 +90,12 @@ class _GameScreenState extends State<GameScreen>
 
     _initializeWebSocketConnection();
     _startElapsedBlocksPolling();
+
+    // Clear private input x when joining a game in 'created' state
+    // (Player 2 should enter their own secret number)
+    if ((_latestStatus == 'created') && (_myRole == 'Player 2')) {
+      _controllerX.text = '';
+    }
   }
 
   @override
@@ -128,7 +139,7 @@ class _GameScreenState extends State<GameScreen>
 
   void _startElapsedBlocksPolling() {
     _elapsedTimer?.cancel();
-    _elapsedTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
+    _elapsedTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       await _fetchElapsedBlocks();
       await _fetchLatestStatus();
     });
@@ -174,18 +185,18 @@ class _GameScreenState extends State<GameScreen>
         } catch (_) {}
       }
 
-      // Clear private input x when joining a game in 'created' state
-      // (Player 2 should enter their own secret number)
-      if ((properties.status == 'created') && (_myRole == 'Player 2')) {
-        _controllerX.text = '';
-      }
-
       // if controllerY is empty then set it to the value of the last intent
       if ((_controllerY.text.isEmpty) &&
           ((_myRole == 'Player 1' && properties.status == 'p1_verify') ||
               (_myRole == 'Player 2' && properties.status == 'p2_verify'))) {
         _controllerY.text = properties.lastIntent.toString();
       }
+
+      // if controllerBetAmount is empty then set it to the value of the bet amount
+      if (_myRole == 'Player 2') {
+        _controllerBetAmount.text = properties.reward.toString();
+      }
+
       setState(() => _latestStatus = properties.status);
     } catch (_) {}
   }
@@ -484,6 +495,12 @@ class _GameScreenState extends State<GameScreen>
     return false;
   }
 
+  bool _shouldEnableControllerBetAmount() {
+    if ((_myRole == 'Player 1') && (_latestStatus != '')) return false;
+    if (_myRole == 'Player 2') return false;
+    return true;
+  }
+
   Widget _buildCircomTab() {
     return SingleChildScrollView(
       child: Column(
@@ -556,17 +573,59 @@ class _GameScreenState extends State<GameScreen>
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
                 controller: _controllerGameId,
-                enabled: false,
+                enabled: _shouldEnableGameId(),
                 decoration: InputDecoration(
                   labelText: "Game ID",
                   hintText: "For example, 1",
-                  disabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
+                  disabledBorder: _shouldEnableGameId()
+                      ? null
+                      : const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
                 ),
                 keyboardType: TextInputType.number,
               ),
             ),
+          // Bet Amount textbox
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextFormField(
+              controller: _controllerBetAmount,
+              enabled: _shouldEnableControllerBetAmount(),
+              decoration: InputDecoration(
+                labelText: "Bet Amount (in STRK tokens)",
+                hintText: "Enter bet amount in STRK tokens",
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: () {
+                        final currentValue =
+                            int.tryParse(_controllerBetAmount.text) ?? 0;
+                        if (currentValue > 0) {
+                          _controllerBetAmount.text = (currentValue - 1)
+                              .toString();
+                        }
+                      },
+                      tooltip: 'Decrement',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        final currentValue =
+                            int.tryParse(_controllerBetAmount.text) ?? 0;
+                        _controllerBetAmount.text = (currentValue + 1)
+                            .toString();
+                      },
+                      tooltip: 'Increment',
+                    ),
+                  ],
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ),
           if (_shouldShowControllerX())
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -574,7 +633,7 @@ class _GameScreenState extends State<GameScreen>
                 controller: _controllerX,
                 enabled: _shouldEnableControllerX(),
                 decoration: InputDecoration(
-                  labelText: "Private input `x` (secret number)",
+                  labelText: "Private input `x` (My secret number)",
                   hintText: "For example, 42",
                   disabledBorder: _shouldEnableControllerX()
                       ? null
@@ -890,7 +949,7 @@ class _GameScreenState extends State<GameScreen>
                       builder: (context) => AlertDialog(
                         title: const Text("Confirm Charge"),
                         content: const Text(
-                          "Please approve the entry fee (1 FRI) to create a game.",
+                          "Please approve the bet amount to create a game.",
                         ),
                         actions: [
                           TextButton(
@@ -908,7 +967,7 @@ class _GameScreenState extends State<GameScreen>
 
                     try {
                       final entryFee = Uint256.fromBigInt(
-                        BigInt.parse("1"), //1 FRI
+                        BigInt.parse(_controllerBetAmount.text), //1 FRI
                       );
                       final txHash = await approveEntryFee(entryFee);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -936,7 +995,9 @@ class _GameScreenState extends State<GameScreen>
                     final txHash = await invokeCreateGame(
                       gameIdU256,
                       hashU256,
-                      Uint256.fromBigInt(BigInt.parse("1")),
+                      Uint256.fromBigInt(
+                        BigInt.parse(_controllerBetAmount.text),
+                      ),
                     );
                     if (mounted) {
                       setState(() => _myRole = 'Player 1');
@@ -957,7 +1018,7 @@ class _GameScreenState extends State<GameScreen>
                     );
                   }
                 },
-                child: const Text("Create game with commitment"),
+                child: const Text("Create game (save commitment)"),
               ),
             ),
           // Join Game button (shown when game is in 'created' state)
@@ -984,7 +1045,7 @@ class _GameScreenState extends State<GameScreen>
                       builder: (context) => AlertDialog(
                         title: const Text("Confirm Charge"),
                         content: const Text(
-                          "Please approve the entry fee (1 FRI) to join the game.",
+                          "Please approve the bet amount to join the game.",
                         ),
                         actions: [
                           TextButton(
@@ -1002,7 +1063,7 @@ class _GameScreenState extends State<GameScreen>
 
                     try {
                       final entryFee = Uint256.fromBigInt(
-                        BigInt.parse("1"), //1 FRI
+                        BigInt.parse(_controllerBetAmount.text), //1 FRI
                       );
                       final txHash = await approveEntryFee(entryFee);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -1045,7 +1106,7 @@ class _GameScreenState extends State<GameScreen>
                     );
                   }
                 },
-                child: const Text("Join Game with Commitment"),
+                child: const Text("Join Game (save commitment)"),
               ),
             ),
           // Waiting for opponent's guess intent (initial state - before Player 2 makes a guess)
@@ -1337,7 +1398,14 @@ class _GameScreenState extends State<GameScreen>
                     _circomValid = valid;
                   });
                 },
-                child: const Text("Check Result (Verify Proof in blockchain)"),
+                // button with centered text
+                child: Center(
+                  child: Text(
+                    "Guess received, press button to check result \n (verify proof onchain)",
+                    style: TextStyle(fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
             ),
           // Winner Card (win_p1 or win_p2)
