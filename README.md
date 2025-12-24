@@ -8,7 +8,7 @@ A mobile phone prediction app where you and your friends will have a lot of fun 
 
 ## Getting Started
 
-The purpose of this game is to predict secret number between two players hiding all the secrets thanks to [circom circuits](https://github.com/rukafe0x/zk_guess/tree/main/circuit/guess.circom), the [Mopro ZK prover](https://github.com/rukafe0x/zk_guess/tree/main/mopro_flutter/lib) in the app, a [garaga backend](https://github.com/rukafe0x/zk_guess/tree/main/circuit/garaga_backend.py) for snark calldata translation and a [verifier contract](https://github.com/rukafe0x/zk_guess/tree/main/contract/zk_guess.cairo) deployed in starknet with all token logic to check for the winner and transfer the tokens.
+The purpose of this game is to predict secret number between two players hiding all the secrets thanks to [Circom circuits](https://github.com/rukafe0x/zk_guess/tree/main/circuit/guess.circom), the [Mopro ZK prover](https://github.com/rukafe0x/zk_guess/tree/main/mopro_flutter/lib) in the app, [garaga_rs](https://github.com/rukafe0x/zk_guess/tree/main/rust/src/api.rs) integrated with Flutter Rust Bridge for snark calldata translation and [Starknet.Dart](https://https://github.com/focustree/starknet.dart) to call an on-chain [Starknet verifier contract](https://github.com/rukafe0x/zk_guess/tree/main/contract/zk_guess.cairo) with all token logic to check winner and transfer the tokens.
 
 ## How to Play
 Notice: This is a full functional app in Sepolia but with a UI as work in progress.
