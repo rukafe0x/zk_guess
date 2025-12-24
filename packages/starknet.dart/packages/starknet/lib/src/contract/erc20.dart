@@ -1,7 +1,7 @@
 import 'package:starknet_provider/starknet_provider.dart';
 
-import '../core/types/index.dart';
 import '../core/crypto/keccak.dart';
+import '../core/types/index.dart';
 import 'contract.dart';
 
 class ERC20 extends Contract {
@@ -9,15 +9,15 @@ class ERC20 extends Contract {
 
   /// Returns the name of the token.
   Future<String> name() async {
-    final res = await call("name", []);
-    final Felt name = res[0];
+    final res = await call('name', []);
+    final name = res[0];
     return name.toSymbol();
   }
 
   /// Returns the symbol of the token, usually a shorter version of the name.
   Future<String> symbol() async {
-    final res = await call("symbol", []);
-    final Felt symbol = res[0];
+    final res = await call('symbol', []);
+    final symbol = res[0];
     return symbol.toSymbol();
   }
 
@@ -26,19 +26,19 @@ class ERC20 extends Contract {
   /// For example, if decimals equals 2, a balance of 505 tokens
   /// should be displayed to a user as 5,05 (505 / 10 ** 2).
   Future<Felt> decimals() async {
-    final res = await call("decimals", []);
+    final res = await call('decimals', []);
     return res[0];
   }
 
   /// Returns the amount of tokens in existence.
   Future<Uint256> totalSupply() async {
-    final res = await call("totalSupply", []);
+    final res = await call('totalSupply', []);
     return Uint256(low: res[0], high: res[1]);
   }
 
   /// Returns the amount of tokens owned by `account`.
   Future<Uint256> balanceOf(Felt account) async {
-    final res = await call("balanceOf", [account]);
+    final res = await call('balanceOf', [account]);
     return Uint256(low: res[0], high: res[1]);
   }
 
@@ -48,7 +48,7 @@ class ERC20 extends Contract {
   ///
   /// This value changes when approve or transferFrom are called.
   Future<Uint256> allowance(Felt owner, Felt spender) async {
-    final res = await call("allowance", [owner, spender]);
+    final res = await call('allowance', [owner, spender]);
     return Uint256(low: res[0], high: res[1]);
   }
 
@@ -60,13 +60,13 @@ class ERC20 extends Contract {
       functionCalls: [
         FunctionCall(
           contractAddress: address,
-          entryPointSelector: getSelectorByName("transfer"),
+          entryPointSelector: getSelectorByName('transfer'),
           calldata: [recipient, value.low, value.high],
         ),
       ],
     );
-    final InvokeTransactionResponse trx = await execute(
-      selector: "transfer",
+    final trx = await execute(
+      selector: 'transfer',
       calldata: [recipient, value.low, value.high],
       l1GasConsumed: maxFee.l1GasConsumed,
       l1GasPrice: maxFee.l1GasPrice,
@@ -78,7 +78,7 @@ class ERC20 extends Contract {
     return trx.when(
       result: (result) => result.transaction_hash,
       error: (error) {
-        throw Exception("Error transfer (${error.code}): ${error.message}");
+        throw Exception('Error transfer (${error.code}): ${error.message}');
       },
     );
   }
@@ -92,13 +92,13 @@ class ERC20 extends Contract {
       functionCalls: [
         FunctionCall(
           contractAddress: address,
-          entryPointSelector: getSelectorByName("transferFrom"),
+          entryPointSelector: getSelectorByName('transferFrom'),
           calldata: [from, to, value.low, value.high],
         ),
       ],
     );
-    final InvokeTransactionResponse trx = await execute(
-      selector: "transferFrom",
+    final trx = await execute(
+      selector: 'transferFrom',
       calldata: [from, to, value.low, value.high],
       l1GasConsumed: maxFee.l1GasConsumed,
       l1GasPrice: maxFee.l1GasPrice,
@@ -107,14 +107,14 @@ class ERC20 extends Contract {
       l1DataGasConsumed: maxFee.l1DataGasConsumed,
       l1DataGasPrice: maxFee.l1DataGasPrice,
     );
-    return (trx.when(
+    return trx.when(
       result: (result) {
         return result.transaction_hash;
       },
       error: (error) {
-        throw Exception("Error transferFrom (${error.code}): ${error.message}");
+        throw Exception('Error transferFrom (${error.code}): ${error.message}');
       },
-    ));
+    );
   }
 
   /// Sets `amount` as the allowance of `spender` over the caller’s tokens.
@@ -125,13 +125,13 @@ class ERC20 extends Contract {
       functionCalls: [
         FunctionCall(
           contractAddress: address,
-          entryPointSelector: getSelectorByName("approve"),
+          entryPointSelector: getSelectorByName('approve'),
           calldata: [spender, amount.low, amount.high],
         ),
       ],
     );
-    final InvokeTransactionResponse trx = await execute(
-      selector: "approve",
+    final trx = await execute(
+      selector: 'approve',
       calldata: [spender, amount.low, amount.high],
       l1GasConsumed: maxFee.l1GasConsumed,
       l1GasPrice: maxFee.l1GasPrice,
@@ -140,13 +140,13 @@ class ERC20 extends Contract {
       l1DataGasConsumed: maxFee.l1DataGasConsumed,
       l1DataGasPrice: maxFee.l1DataGasPrice,
     );
-    return (trx.when(
+    return trx.when(
       result: (result) {
         return result.transaction_hash;
       },
       error: (error) {
-        throw Exception("Error approve (${error.code}): ${error.message}");
+        throw Exception('Error approve (${error.code}): ${error.message}');
       },
-    ));
+    );
   }
 }

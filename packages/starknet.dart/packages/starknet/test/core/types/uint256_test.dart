@@ -45,7 +45,7 @@ void main() {
       });
 
       test('Ensure valid calldata encoding for an empty list', () {
-        final List<Uint256> args = [];
+        final args = <Uint256>[];
         expect(
           args.toCalldata(),
           equals([Felt.zero]),

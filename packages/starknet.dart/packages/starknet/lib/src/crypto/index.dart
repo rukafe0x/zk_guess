@@ -33,7 +33,7 @@ BigInt calculateTransactionHashCommon({
   List<BigInt> additionalData = const [],
 }) {
   final calldataHash = computeHashOnElements(calldata);
-  final List<BigInt> dataToHash = [
+  final dataToHash = <BigInt>[
     txHashPrefix,
     BigInt.from(version),
     address,
@@ -54,7 +54,7 @@ List<Felt> functionCallsToCalldata({
     return functionCallsToCalldataLegacy(functionCalls: functionCalls);
   }
 
-  List<Felt> calldata = [Felt.fromInt(functionCalls.length)];
+  final calldata = <Felt>[Felt.fromInt(functionCalls.length)];
   for (final call in functionCalls) {
     calldata.addAll([
       call.contractAddress, // to
@@ -68,10 +68,11 @@ List<Felt> functionCallsToCalldata({
 }
 
 // Legacy version for cairo 0
-List<Felt> functionCallsToCalldataLegacy(
-    {required List<FunctionCall> functionCalls}) {
-  List<Felt> calldata = [];
-  List<Felt> calls = [];
+List<Felt> functionCallsToCalldataLegacy({
+  required List<FunctionCall> functionCalls,
+}) {
+  final calldata = <Felt>[];
+  final calls = <Felt>[];
   for (final call in functionCalls) {
     calls.addAll([
       call.contractAddress, // to

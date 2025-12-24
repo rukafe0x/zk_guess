@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:starknet_provider/starknet_provider.dart';
-import 'static_config.dart';
 
 import 'core/types/index.dart';
+import 'static_config.dart';
 
 void prettyPrintJson(Map<String, dynamic> json) {
   const encoder = JsonEncoder.withIndent('  ');

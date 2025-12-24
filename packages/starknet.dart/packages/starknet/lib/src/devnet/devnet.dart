@@ -5,7 +5,9 @@ import 'model/predeployed_account.dart';
 class Devnet {
   /// Mints tokens on the devnet
   static Future<MintResponse> mintTransaction(
-      Uri nodeUri, MintRequest request) async {
+    Uri nodeUri,
+    MintRequest request,
+  ) async {
     try {
       final response = await callRpcEndpoint(
         nodeUri: nodeUri,
@@ -20,7 +22,8 @@ class Devnet {
 
   /// Get predeployed accounts from devnet with balances
   static Future<List<PredeployedAccount>> getPredeployedAccounts(
-      Uri nodeUri) async {
+    Uri nodeUri,
+  ) async {
     try {
       final response = await callRpcEndpoint(
         nodeUri: nodeUri,

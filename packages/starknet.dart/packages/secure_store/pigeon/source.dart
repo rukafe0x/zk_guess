@@ -8,10 +8,10 @@ class AndroidPromptInfos {
   final bool confirmationRequired;
 
   const AndroidPromptInfos({
-    this.title = "Authentication required",
+    this.title = 'Authentication required',
     this.subtitle,
     this.description,
-    this.cancelLabel = "CANCEL",
+    this.cancelLabel = 'CANCEL',
     this.confirmationRequired = true,
   });
 }

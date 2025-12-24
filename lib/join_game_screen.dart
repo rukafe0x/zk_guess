@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:starknet/starknet.dart';
 import 'package:starknet_provider/starknet_provider.dart';
 import 'package:poseidon/poseidon.dart';
@@ -12,6 +11,8 @@ import 'package:mopro_flutter/mopro_flutter.dart';
 import 'package:mopro_flutter/mopro_types.dart';
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:zk_guess/bridge_generated.dart/frb_generated.dart';
+import 'package:zk_guess/bridge_generated.dart/api.dart';
 
 class GameScreen extends StatefulWidget {
   final String accountAddress;
@@ -88,6 +89,7 @@ class _GameScreenState extends State<GameScreen>
       });
     }
 
+    _initializeRust();
     _initializeWebSocketConnection();
     _startElapsedBlocksPolling();
 
@@ -96,6 +98,11 @@ class _GameScreenState extends State<GameScreen>
     if ((_latestStatus == 'created') && (_myRole == 'Player 2')) {
       _controllerX.text = '';
     }
+  }
+
+  Future<void> _initializeRust() async {
+    // Initialize the FFI bridge once at the start of the application
+    await RustLib.init();
   }
 
   @override
@@ -428,10 +435,12 @@ class _GameScreenState extends State<GameScreen>
     // Show claim button if opponent timed out (elapsed blocks > 1000)
     if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_turn')) return false;
     if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_turn')) return false;
-    if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_verify'))
+    if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_verify')) {
       return false;
-    if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_verify'))
+    }
+    if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_verify')) {
       return false;
+    }
     if (_elapsedBlocks != null && _latestStatus != 'created') {
       try {
         final elapsed = BigInt.parse(_elapsedBlocks!);
@@ -444,15 +453,18 @@ class _GameScreenState extends State<GameScreen>
   bool _shouldShowTimeoutWinnerCard() {
     if (_elapsedBlocks == null ||
         _latestStatus == null ||
-        _latestStatus!.isEmpty)
+        _latestStatus!.isEmpty) {
       return false;
+    }
     if (_latestStatus! == 'created') return false;
     if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_turn')) return false;
     if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_turn')) return false;
-    if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_verify'))
+    if ((_myRole == 'Player 1') && (_latestStatus! == 'p1_verify')) {
       return false;
-    if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_verify'))
+    }
+    if ((_myRole == 'Player 2') && (_latestStatus! == 'p2_verify')) {
       return false;
+    }
     final elapsed = BigInt.tryParse(_elapsedBlocks!);
     if (elapsed == null) return false;
     return elapsed > BigInt.from(1000);
@@ -474,8 +486,9 @@ class _GameScreenState extends State<GameScreen>
     }
     if (status == null || status.isEmpty) return true;
     if (status == 'empty') return true;
-    if (status == 'created' && _myRole == 'Player 2')
+    if (status == 'created' && _myRole == 'Player 2') {
       return true; // Enable when game is created (Player 2 can join)
+    }
     return false;
   }
 
@@ -1355,32 +1368,51 @@ class _GameScreenState extends State<GameScreen>
                     );
 
                     // Then verify
-                    var httpPayload = proofResult!.toMap();
-                    httpPayload['public_inputs'] = httpPayload['inputs'];
-                    httpPayload.remove('inputs');
-                    var response = await http.post(
-                      Uri.parse('http://10.0.2.2:8080'),
-                      headers: {'Content-Type': 'application/json'},
-                      body: jsonEncode(httpPayload),
+                    // 1. Prepare the JSON strings from your `proofResult`
+                    // Since you are using SnarkJS output (which is JSON), we use jsonEncode on the parts
+                    // that aren't already strings (like the public inputs array).
+                    var proofMap = proofResult!.toMap();
+
+                    // We must ensure the inputs are serialized as strings:
+                    final vkJson = await rootBundle.loadString(
+                      'assets/garaga_verification_key.json',
                     );
-                    final elementsCount = response.body
-                        .substring(1, response.body.length - 1)
-                        .split(",")
-                        .length;
+                    final proofJson = jsonEncode(proofMap['proof']);
+                    final publicInputsJson = jsonEncode(proofMap['inputs']);
+
+                    // 2. Create the input struct for the Rust function
+                    final input = Groth16Input(
+                      vkJson: vkJson,
+                      proofJson: proofJson,
+                      publicInputsJson: publicInputsJson,
+                    );
+
+                    // 3. Call the Rust function directly!
+                    // This replaces your entire http.post block.
+                    final calldataResult = await generateGroth16Calldata(
+                      input: input,
+                    );
+
+                    // 4. Process the flat list of hex strings into Starknet Felt list
+                    final calldataElements = calldataResult.calldata
+                        .map(
+                          // The Rust code returns '0x...' hex strings, which BigInt can parse directly.
+                          (felt) => Felt(BigInt.parse(felt)),
+                        )
+                        .toList();
+
+                    // 5. Prepend the length as the first element (Starknet Calldata Convention)
+                    // You need to import 'dart:math' for BigInt, but typically you use the library's
+                    // BigInt, like starknet.dart's. Felt(x) constructor should handle `int` for small numbers.
                     var calldata = [
-                      Felt(BigInt.parse(elementsCount.toString())),
-                      ...response.body
-                          .substring(1, response.body.length - 1)
-                          .split(",")
-                          .map(
-                            (felt) =>
-                                Felt(BigInt.parse(felt.replaceAll("\"", ""))),
-                          )
-                          .toList(),
+                      Felt(
+                        BigInt.from(calldataElements.length),
+                      ), // Length of the elements
+                      ...calldataElements,
                     ];
                     final txHash = await invokeVerifyIntent(
                       Uint256.fromBigInt(BigInt.parse(_controllerGameId.text)),
-                      calldata,
+                      calldataElements,
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -1389,7 +1421,8 @@ class _GameScreenState extends State<GameScreen>
                     );
                     valid = true;
                   } catch (e) {
-                    valid = false;
+                    valid =
+                        false; //"Invalid Proof JSON: Error("invalid type: map, expected a sequence", line: 1, column: 5)"
                     setState(() => _error = Exception(e.toString()));
                   }
                   if (!mounted) return;

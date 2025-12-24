@@ -6,10 +6,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'main_screen.dart';
-import 'services.dart';
 
 class AccountSelectionScreen extends StatefulWidget {
-  const AccountSelectionScreen({Key? key}) : super(key: key);
+  const AccountSelectionScreen({super.key});
 
   @override
   _AccountSelectionScreenState createState() => _AccountSelectionScreenState();
@@ -279,11 +278,11 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
                         onPressed: () => Navigator.of(context).pop(false),
                       ),
                       TextButton(
-                        child: const Text('Remove All'),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
                         ),
                         onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Remove All'),
                       ),
                     ],
                   );
@@ -331,7 +330,7 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _accounts.length < 1
+            : _accounts.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:starknet/starknet.dart';
+import '../../../starknet.dart';
 part 'predeployed_account.freezed.dart';
 part 'predeployed_account.g.dart';
 

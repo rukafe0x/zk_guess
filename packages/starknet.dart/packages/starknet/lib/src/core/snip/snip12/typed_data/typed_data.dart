@@ -173,8 +173,10 @@ class TypedData {
           return MapEntry(
             key,
             (value as List<dynamic>)
-                .map((e) =>
-                    SNIP12TypedParameter.fromJson(e as Map<String, dynamic>))
+                .map(
+                  (e) =>
+                      SNIP12TypedParameter.fromJson(e as Map<String, dynamic>),
+                )
                 .toList(),
           );
         },
@@ -350,7 +352,13 @@ List<String> _encodeValue(
     final baseType = type.substring(0, type.length - 1);
     final hashes = (data as List)
         .map((entry) {
-          return _encodeValue(types, baseType, entry, _Context(), revision)[1];
+          return _encodeValue(
+            types,
+            baseType,
+            entry,
+            const _Context(),
+            revision,
+          )[1];
         })
         .map((e) => e.startsWith('0x') ? BigInt.parse(e) : BigInt.parse('0x$e'))
         .toList();
@@ -389,7 +397,12 @@ List<String> _encodeValue(
               if (subtype.isEmpty) return null;
               final subtypeData = (variantData as List)[entry.key];
               return _encodeValue(
-                  types, subtype, subtypeData, _Context(), revision)[1];
+                types,
+                subtype,
+                subtypeData,
+                const _Context(),
+                revision,
+              )[1];
             })
             .whereType<String>()
             .map(
@@ -415,7 +428,12 @@ List<String> _encodeValue(
       final layer = (data as List)
           .map((entry) {
             return _encodeValue(
-                types, merkleType.contains!, entry, _Context(), revision)[1];
+              types,
+              merkleType.contains!,
+              entry,
+              const _Context(),
+              revision,
+            )[1];
           })
           .map(
             (e) => e.startsWith('0x') ? BigInt.parse(e) : BigInt.parse('0x$e'),
@@ -499,8 +517,12 @@ List<String> _encodeValue(
     case 'ClassHash':
     case 'ContractAddress':
       if (revision == _TypedDataRevision.active) {
-        _assertRange(data, type,
-            min: BigInt.from(0), max: BigInt.from(2).pow(251));
+        _assertRange(
+          data,
+          type,
+          min: BigInt.from(0),
+          max: BigInt.from(2).pow(251),
+        );
       }
       return [type, getHex(data)];
     case 'bool':
@@ -575,7 +597,7 @@ String _encodeType(
     }).join(',');
 
     return '${esc(dependency)}($dependencyElements)';
-  }).join('');
+  }).join();
 }
 
 // Get the dependencies of a struct type.

@@ -5,7 +5,7 @@ const stringZero = '0';
 
 // Remove hex prefix '0x' from hex-string
 String removeHexPrefix(String hex) {
-  return hex.replaceFirst(RegExp(r'^0x', caseSensitive: false), '');
+  return hex.replaceFirst(RegExp('^0x', caseSensitive: false), '');
 }
 
 // Add hex prefix '0x' to base16-string

@@ -225,8 +225,7 @@ class CASMCompiledContract
   BigInt classHash() {
     final elements = <BigInt>[];
     //add COMPILED_CLASS_V1 element when compilerVersion >= 1.1.0
-    final version =
-        compilerVersion.split('.').map((e) => int.parse(e)).toList();
+    final version = compilerVersion.split('.').map(int.parse).toList();
     if (version[0] > 1 || (version[0] == 1 && version[1] >= 1)) {
       elements.add(Felt.fromString(COMPILED_CLASS_V1).toBigInt());
     }
@@ -402,7 +401,7 @@ String compressProgram(Map<String, Object?> program) {
 class PythonicJsonEncoder extends Converter<Object?, String> {
   final bool filterRuntimeType;
   final bool sortSymbol;
-  final JsonEncoder _encoder = JsonEncoder();
+  final JsonEncoder _encoder = const JsonEncoder();
 
   PythonicJsonEncoder({this.filterRuntimeType = true, this.sortSymbol = true});
 
@@ -531,26 +530,20 @@ abstract class _JsonStringifier {
         switch (charCode) {
           case backspace:
             writeCharCode(char_b);
-            break;
           case tab:
             writeCharCode(char_t);
-            break;
           case newline:
             writeCharCode(char_n);
-            break;
           case formFeed:
             writeCharCode(char_f);
-            break;
           case carriageReturn:
             writeCharCode(char_r);
-            break;
           default:
             writeCharCode(char_u);
             writeCharCode(char_0);
             writeCharCode(char_0);
             writeCharCode(hexDigit((charCode >> 4) & 0xf));
             writeCharCode(hexDigit(charCode & 0xf));
-            break;
         }
       } else if (charCode == quote || charCode == backslash) {
         if (i > offset) writeStringSlice(s, offset, i);

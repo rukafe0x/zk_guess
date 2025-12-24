@@ -58,26 +58,26 @@ class SierraContractAbiEntry with _$SierraContractAbiEntry {
     @JsonKey(includeIfNull: false) String? stateMutability,
   }) = SierraL1HandlerAbiEntry;
 
-  factory SierraContractAbiEntry.fromJson(Map<String, Object?> json) => json[
-              'type'] ==
-          'event'
-      ? SierraEventAbiEntry.fromJson(json)
-      : json['type'] == 'struct'
-          ? SierraStructAbiEntry.fromJson(json)
-          : json['type'] == 'enum'
-              ? SierraEnumAbiEntry.fromJson(json)
-              : json['type'] == 'function'
-                  ? SierraFunctionAbiEntry.fromJson(json)
-                  : json['type'] == 'impl'
-                      ? SierraImplAbiEntry.fromJson(json)
-                      : json['type'] == 'interface'
-                          ? SierraInterfaceAbiEntry.fromJson(json)
-                          : json['type'] == 'constructor'
-                              ? SierraConstructorAbiEntry.fromJson(json)
-                              : json['type'] == 'l1_handler'
-                                  ? SierraL1HandlerAbiEntry.fromJson(json)
-                                  : throw Exception(
-                                      "Unsupported entry type: ${json['type']}");
+  factory SierraContractAbiEntry.fromJson(Map<String, Object?> json) =>
+      json['type'] == 'event'
+          ? SierraEventAbiEntry.fromJson(json)
+          : json['type'] == 'struct'
+              ? SierraStructAbiEntry.fromJson(json)
+              : json['type'] == 'enum'
+                  ? SierraEnumAbiEntry.fromJson(json)
+                  : json['type'] == 'function'
+                      ? SierraFunctionAbiEntry.fromJson(json)
+                      : json['type'] == 'impl'
+                          ? SierraImplAbiEntry.fromJson(json)
+                          : json['type'] == 'interface'
+                              ? SierraInterfaceAbiEntry.fromJson(json)
+                              : json['type'] == 'constructor'
+                                  ? SierraConstructorAbiEntry.fromJson(json)
+                                  : json['type'] == 'l1_handler'
+                                      ? SierraL1HandlerAbiEntry.fromJson(json)
+                                      : throw Exception(
+                                          "Unsupported entry type: ${json['type']}",
+                                        );
 }
 
 @freezed
@@ -134,7 +134,7 @@ class SierraEventAbi with _$SierraEventAbi {
 
 abstract class SierraEventAbiInstance {
   factory SierraEventAbiInstance.fromJson(Map<String, Object?> json) =>
-      json["kind"] == "enum"
+      json['kind'] == 'enum'
           ? SierraEventAbiEnum.fromJson(json)
           : SierraEventAbiStruct.fromJson(json);
 

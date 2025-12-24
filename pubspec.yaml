@@ -46,6 +46,9 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   avnu_provider:
     path: packages/starknet.dart/packages/avnu_provider
+  flutter_rust_bridge: 2.11.1
+  rust_bridge:
+    path: rust_builder
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +60,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -103,3 +108,4 @@ flutter:
     - assets/guess_0001.zkey
     - assets/pes.png
     - .env
+    - assets/garaga_verification_key.json

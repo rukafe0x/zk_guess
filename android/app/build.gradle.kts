@@ -28,6 +28,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        ndk {
+            // Include only the architectures you want to support.
+            // Excluding 'x86' (i686) saves a lot of compile time.
+            abiFilters += listOf("x86_64")
+        }
     }
 
     buildTypes {

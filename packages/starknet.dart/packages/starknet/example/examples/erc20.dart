@@ -109,10 +109,10 @@ void main() async {
   print(accepted ? '$trx accepted' : '$trx not accepted');
   await account_balance(walletAddress);
 
-  final new_allowance = Felt(allowance.low.toBigInt() + BigInt.from(1));
+  final newAllowance = Felt(allowance.low.toBigInt() + BigInt.from(1));
   trx = await erc20.approve(
     walletAddress,
-    Uint256(low: new_allowance, high: Felt.zero),
+    Uint256(low: newAllowance, high: Felt.zero),
   );
   print('Approve transaction: $trx');
   accepted = await waitForAcceptance(
