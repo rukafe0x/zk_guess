@@ -51,7 +51,7 @@ ECPoint processSingleElement(BigInt x, ECPoint p1, ECPoint p2) {
   assert(x < pedersenParams.fieldPrime, 'Invalid value for x');
   final highNibble = x >> lowPartBits;
   final lowPart = x & lowPartMask;
-  final result = (p1 * lowPart)! + (p2 * highNibble);
+  final result = (p1 * lowPart)! + (p2 * highNibble)!;
   if (result == null) {
     throw TypeError();
   }

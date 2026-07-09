@@ -63,6 +63,12 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+dependency_overrides:
+  starknet:
+    path: packages/starknet.dart/packages/starknet
+  starknet_provider:
+    path: packages/starknet.dart/packages/starknet_provider
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

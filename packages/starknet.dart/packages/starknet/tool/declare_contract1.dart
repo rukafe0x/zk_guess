@@ -2,8 +2,6 @@
 ///
 /// ```shell
 /// ```
-library;
-
 import 'package:starknet/starknet.dart';
 
 void main(List<String> args) async {
@@ -13,17 +11,17 @@ void main(List<String> args) async {
   final sierraContract = await CompiledContract.fromPath(sierraPath);
   final compiledContract = await CASMCompiledContract.fromPath(compiledPath);
 
-  var sierraClassHash = Felt(sierraContract.classHash());
-  final compiledClassHash = compiledContract.classHash();
+  Felt sierraClassHash = Felt(sierraContract.classHash());
+  BigInt compiledClassHash = compiledContract.classHash();
 
   print(
-    '$sierraPath : ${sierraClassHash.toHexString()}',
+    "$sierraPath : ${sierraClassHash.toHexString()}",
   );
   print(
-    '$compiledPath: ${Felt(compiledClassHash).toHexString()}',
+    "$compiledPath: ${Felt(compiledClassHash).toHexString()}",
   );
 
-  var txHash = Felt.zero;
+  Felt txHash = Felt.zero;
   final declareTx = await account.declare(
     compiledContract: sierraContract,
     compiledClassHash: compiledClassHash,
@@ -33,27 +31,27 @@ void main(List<String> args) async {
       sierraClassHash = result.classHash;
       txHash = result.transactionHash;
       print(
-        'Contract ClassHash: ${sierraClassHash.toHexString()} (${txHash.toHexString()})',
+        "Contract ClassHash: ${sierraClassHash.toHexString()} (${txHash.toHexString()})",
       );
     },
     error: (error) {
       throw Exception(
-        'Failed to declare contract: ${error.code}: ${error.message}',
+        "Failed to declare contract: ${error.code}: ${error.message}",
       );
     },
   );
-  final txStatus = await waitForAcceptance(
+  bool txStatus = await waitForAcceptance(
     transactionHash: txHash.toHexString(),
     provider: account.provider,
   );
   if (!txStatus) {
     final tx = await account.provider.getTransactionByHash(txHash);
-    print('Contract declare transaction failed');
+    print("Contract declare transaction failed");
     prettyPrintJson(tx.toJson());
-    throw Exception('Declare transaction failed');
+    throw Exception("Declare transaction failed");
   } else {
     final txReceipt = await account.provider.getTransactionReceipt(txHash);
-    print('Contract declare transaction OK!');
+    print("Contract declare transaction OK!");
     prettyPrintJson(txReceipt.toJson());
   }
 }

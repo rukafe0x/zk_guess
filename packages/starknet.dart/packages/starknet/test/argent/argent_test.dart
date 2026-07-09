@@ -63,10 +63,7 @@ Future<(Felt, BaseAccountSigner)> deployArgentAccount(
 }
 
 Future<Uint256> erc20Allowance(
-  Felt erc20ContractAddress,
-  Felt owner,
-  Felt spender,
-) async {
+    Felt erc20ContractAddress, Felt owner, Felt spender) async {
   return (await provider.call(
     request: FunctionCall(
       contractAddress: erc20ContractAddress,

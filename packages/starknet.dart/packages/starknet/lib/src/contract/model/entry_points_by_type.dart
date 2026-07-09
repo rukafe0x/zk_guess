@@ -64,8 +64,7 @@ class DeprecatedCairoEntryPointsByType with _$DeprecatedCairoEntryPointsByType {
   }) = _DeprecatedCairoEntryPointsByType;
 
   factory DeprecatedCairoEntryPointsByType.fromJson(
-    Map<String, Object?> json,
-  ) =>
+          Map<String, Object?> json) =>
       _$DeprecatedCairoEntryPointsByTypeFromJson(json);
 }
 

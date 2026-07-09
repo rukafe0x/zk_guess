@@ -26,6 +26,7 @@ void main() async {
     mnemonic: recoveryMnemonic,
     provider: provider,
     chainId: chainId,
+    index: 0,
   );
   print('Recovery account:');
   await printAccountInfo(fundingAccount);
@@ -55,7 +56,7 @@ void main() async {
     recipient: account.accountAddress,
     amount: Uint256(low: Felt(BigInt.from(0.005 * 1e18)), high: Felt.zero),
   );
-  final isAccepted =
+  bool isAccepted =
       await waitForAcceptance(transactionHash: txHash, provider: provider);
   if (!isAccepted) {
     print('Sending funds failed ($txHash)');

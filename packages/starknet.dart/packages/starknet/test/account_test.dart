@@ -24,16 +24,16 @@ void main() {
           final compiledContract = await CASMCompiledContract.fromPath(
             '${Directory.current.path}/../../contracts/v1/artifacts/contract2_Counter2.compiled_contract_class.json',
           );
-          final compiledClassHash = compiledContract.classHash();
+          final BigInt compiledClassHash = compiledContract.classHash();
 
-          final sierraClassHash = Felt(sierraContract.classHash());
+          Felt sierraClassHash = Felt(sierraContract.classHash());
 
-          final maxFee = await account2.getEstimateMaxFeeForDeclareTx(
+          var maxFee = await account2.getEstimateMaxFeeForDeclareTx(
             compiledContract: sierraContract,
             compiledClassHash: compiledClassHash,
           );
 
-          final res = await account2.declare(
+          var res = await account2.declare(
             compiledContract: sierraContract,
             compiledClassHash: compiledClassHash,
             l1GasConsumed: maxFee.l1GasConsumed,
@@ -67,7 +67,7 @@ void main() {
               expect(
                 contract.sierraProgram,
                 equals(
-                  sierraContract.contract.sierraProgram.map(Felt.new),
+                  sierraContract.contract.sierraProgram.map((e) => Felt(e)),
                 ),
               );
             },
@@ -107,16 +107,15 @@ void main() {
                 ),
               ),
             );
-            print('Address $contractAddress');
           },
           skip: true,
         ); // We don't have this class hash in starknet. But deploy cairo 1 contract is supported
         // is being tested below in: test('succeeds to invoke a function execute to a cairo 1 contract',
 
         test('succeeds to deploy an account v3', () async {
-          final accountPrivateKey = Felt.fromHexString('0x12345678abcdef');
+          final accountPrivateKey = Felt.fromHexString("0x12345678abcdef");
           final accountPublicKey = Felt.fromHexString(
-            '0x44702ae20646bbb316ee2f301c9b31ca9f7f301d48d2b6ee82da71f828e8bcb',
+            "0x44702ae20646bbb316ee2f301c9b31ca9f7f301d48d2b6ee82da71f828e8bcb",
           );
           final accountConstructorCalldata = [accountPublicKey];
           final accountSigner = StarkAccountSigner(
@@ -132,7 +131,7 @@ void main() {
             salt: salt,
           );
 
-          var accountClassHash = (await provider.getClassHashAt(
+          Felt accountClassHash = (await provider.getClassHashAt(
             contractAddress: accountAddress,
             blockId: BlockId.latest,
           ))
@@ -142,7 +141,7 @@ void main() {
           );
           expect(accountClassHash, equals(Felt.zero));
           // Simulate deploy account to get fees
-          final maxFee = await account0.getEstimateMaxFeeForDeployAccountTx(
+          var maxFee = await account0.getEstimateMaxFeeForDeployAccountTx(
             classHash: classHash,
             accountSigner: accountSigner,
             provider: provider,
@@ -158,7 +157,7 @@ void main() {
             ),
             useSTRKtoken: true,
           );
-          final success = await waitForAcceptance(
+          bool success = await waitForAcceptance(
             transactionHash: txSend,
             provider: account0.provider,
           );
@@ -211,9 +210,9 @@ void main() {
           final compiledContract = await CASMCompiledContract.fromPath(
             '${Directory.current.path}/../../contracts/v1/artifacts/contract2_MyToken.compiled_contract_class.json',
           );
-          final compiledClassHash = compiledContract.classHash();
+          final BigInt compiledClassHash = compiledContract.classHash();
 
-          final sierraClassHash = Felt(sierraContract.classHash());
+          Felt sierraClassHash = Felt(sierraContract.classHash());
 
           FeeEstimations maxFee;
           String? txHash;
@@ -223,7 +222,7 @@ void main() {
               compiledClassHash: compiledClassHash,
             );
 
-            final res = await account3.declare(
+            var res = await account3.declare(
               compiledContract: sierraContract,
               compiledClassHash: compiledClassHash,
               l1GasConsumed: maxFee.l1GasConsumed,
@@ -253,7 +252,6 @@ void main() {
               provider: account3.provider,
             );
           } catch (e) {
-            print(e);
             if (!e.toString().contains('Contract error')) {
               // If already declared just continue
               rethrow;
@@ -288,7 +286,7 @@ void main() {
             functionCalls: [
               FunctionCall(
                 contractAddress: contractAddress!,
-                entryPointSelector: getSelectorByName('transfer'),
+                entryPointSelector: getSelectorByName("transfer"),
                 calldata: [
                   account1.accountAddress,
                   Felt.fromInt(100),
@@ -302,7 +300,7 @@ void main() {
             functionCalls: [
               FunctionCall(
                 contractAddress: contractAddress,
-                entryPointSelector: getSelectorByName('transfer'),
+                entryPointSelector: getSelectorByName("transfer"),
                 calldata: [
                   account1.accountAddress,
                   Felt.fromInt(100),
@@ -310,6 +308,8 @@ void main() {
                 ],
               ),
             ],
+            incrementNonceIfNonceRelatedError: true,
+            maxAttempts: 5,
             l1GasConsumed: maxFee.l1GasConsumed,
             l1GasPrice: maxFee.l1GasPrice,
             l1DataGasConsumed: maxFee.l1DataGasConsumed,
@@ -320,7 +320,7 @@ void main() {
 
           final txHash1 = response.when(
             result: (result) => result.transaction_hash,
-            error: (err) => throw Exception('Failed to execute'),
+            error: (err) => throw Exception("Failed to execute"),
           );
 
           await waitForAcceptance(
@@ -331,14 +331,14 @@ void main() {
           final result = await account3.provider.call(
             request: FunctionCall(
               contractAddress: contractAddress,
-              entryPointSelector: getSelectorByName('balance_of'),
+              entryPointSelector: getSelectorByName("balance_of"),
               calldata: [account1.accountAddress],
             ),
             blockId: BlockId.latest,
           );
-          final counter = result.when(
+          int counter = result.when(
             result: (result) => result[0].toInt(),
-            error: (error) => throw Exception('Failed to get balance'),
+            error: (error) => throw Exception("Failed to get balance"),
           );
 
           expect(

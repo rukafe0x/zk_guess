@@ -15,7 +15,7 @@ class Felt implements IToCalldata {
 
   //define << and >> . Check result not greater or equel to prime
   Felt operator <<(int shift) {
-    final result = Felt(_bigInt << shift);
+    Felt result = Felt(_bigInt << shift);
     if (result._bigInt >= prime) {
       throw ArgumentError('Value must be smaller than 2^251 + 17 * 2^192 + 1');
     }
@@ -23,7 +23,7 @@ class Felt implements IToCalldata {
   }
 
   Felt operator >>(int shift) {
-    final result = Felt(_bigInt >> shift);
+    Felt result = Felt(_bigInt >> shift);
     if (result._bigInt >= prime) {
       throw ArgumentError('Value must be smaller than 2^251 + 17 * 2^192 + 1');
     }
@@ -32,7 +32,7 @@ class Felt implements IToCalldata {
 
   //define + operator
   Felt operator +(Felt other) {
-    final result = Felt(_bigInt + other._bigInt);
+    Felt result = Felt(_bigInt + other._bigInt);
     if (result._bigInt >= prime) {
       throw ArgumentError('Value must be smaller than 2^251 + 17 * 2^192 + 1');
     }
@@ -41,7 +41,7 @@ class Felt implements IToCalldata {
 
   //define - operator. Check no negative
   Felt operator -(Felt other) {
-    final result = Felt(_bigInt - other._bigInt);
+    Felt result = Felt(_bigInt - other._bigInt);
     if (result._bigInt < BigInt.zero) {
       throw ArgumentError('Value must be greater than 0');
     }
@@ -50,7 +50,7 @@ class Felt implements IToCalldata {
 
   //define * operator
   Felt operator *(Felt other) {
-    final result = Felt(_bigInt * other._bigInt);
+    Felt result = Felt(_bigInt * other._bigInt);
     return result;
   }
 
@@ -60,8 +60,8 @@ class Felt implements IToCalldata {
       throw ArgumentError('Cannot divide by zero');
     }
     // modInverse will throw if no inverse exists
-    final inverse = other._bigInt.modInverse(prime);
-    final result = Felt((_bigInt * inverse) % prime);
+    BigInt inverse = other._bigInt.modInverse(prime);
+    Felt result = Felt((_bigInt * inverse) % prime);
     return result;
   }
 
@@ -149,7 +149,7 @@ class Felt implements IToCalldata {
 
   /// Interprets felt as a string
   String toSymbol() {
-    return const Utf8Codec().decode(_bigInt.toUint8List());
+    return Utf8Codec().decode(_bigInt.toUint8List());
   }
 
   factory Felt.fromCallData(List<Felt> callData) => callData[0];

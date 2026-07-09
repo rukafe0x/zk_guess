@@ -32,11 +32,11 @@ class MerkleTree {
   }
 
   void _buildTree() {
-    var currentLayer = _layers.last;
+    List<BigInt> currentLayer = _layers.last;
 
     // Continue until we reach the root
     while (currentLayer.length > 1) {
-      final nextLayer = <BigInt>[];
+      List<BigInt> nextLayer = [];
 
       // Process pairs
       for (var i = 0; i < currentLayer.length; i += 2) {
@@ -75,7 +75,7 @@ class MerkleTree {
       throw ArgumentError('Leaf not found in the tree');
     }
 
-    final proof = <BigInt>[];
+    List<BigInt> proof = [];
 
     // Go through each layer (except the root layer)
     for (var layerIndex = 0; layerIndex < _layers.length - 1; layerIndex++) {

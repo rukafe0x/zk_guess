@@ -10,25 +10,25 @@ List<BigInt> _hadesRound({
   final fieldPrime = params.fieldPrime;
 
   // add round key
-  var vals = <BigInt>[];
-  for (var idx = 0; idx < nbElements; idx++) {
+  List<BigInt> vals = [];
+  for (int idx = 0; idx < nbElements; idx++) {
     final value = (values[idx] + params.roundKeys[roundIdx][idx]) % fieldPrime;
     vals.add(value);
   }
 
   // subwords
   if (isFullRound) {
-    vals = vals.map((e) => e.pow(nbElements) % fieldPrime).toList();
+    vals = vals.map((e) => (e.pow(nbElements) % fieldPrime)).toList();
   } else {
     final tmp = vals[vals.length - 1];
     vals[vals.length - 1] = tmp.pow(nbElements) % fieldPrime;
   }
 
   // mix layer
-  final results = <BigInt>[];
-  for (var idx = 0; idx < params.mds.length; idx++) {
-    var result = BigInt.zero;
-    for (var j = 0; j < nbElements; j++) {
+  List<BigInt> results = [];
+  for (int idx = 0; idx < params.mds.length; idx++) {
+    BigInt result = BigInt.zero;
+    for (int j = 0; j < nbElements; j++) {
       result += vals[j] * params.mds[idx][j];
     }
     results.add(result % fieldPrime);
@@ -40,15 +40,15 @@ List<BigInt> _hadesPermutation({
   required List<BigInt> values,
   required PoseidonParams params,
 }) {
-  var vals = <BigInt>[...values];
+  List<BigInt> vals = [...values];
 
-  final fullRounds = params.fullRounds.toInt();
-  final partialRounds = params.partialRounds.toInt();
+  int fullRounds = params.fullRounds.toInt();
+  int partialRounds = params.partialRounds.toInt();
 
-  var roundIdx = 0;
+  int roundIdx = 0;
 
   // apply half of full rounds
-  for (var idx = 0; idx < fullRounds / 2; idx++) {
+  for (int idx = 0; idx < fullRounds / 2; idx++) {
     vals = _hadesRound(
       values: vals,
       roundIdx: roundIdx,
@@ -59,7 +59,7 @@ List<BigInt> _hadesPermutation({
   }
 
   // apply partial rounds
-  for (var idx = 0; idx < partialRounds; idx++) {
+  for (int idx = 0; idx < partialRounds; idx++) {
     vals = _hadesRound(
       values: vals,
       roundIdx: roundIdx,
@@ -70,7 +70,7 @@ List<BigInt> _hadesPermutation({
   }
 
   // apply half of full rounds
-  for (var idx = 0; idx < fullRounds / 2; idx++) {
+  for (int idx = 0; idx < fullRounds / 2; idx++) {
     vals = _hadesRound(
       values: vals,
       roundIdx: roundIdx,
@@ -91,29 +91,27 @@ class _Poseidon {
       _hadesPermutation(values: [x, y, BigInt.two], params: params)[0];
 
   BigInt hashSingle(BigInt x) => _hadesPermutation(
-        values: [x, BigInt.zero, BigInt.one],
-        params: params,
-      )[0];
+      values: [x, BigInt.zero, BigInt.one], params: params)[0];
 
   BigInt hashMany(List<BigInt> values) {
-    final r = params.rate.toInt();
-    final c = params.capacity.toInt();
-    final m = r + c;
+    final int r = params.rate.toInt();
+    final int c = params.capacity.toInt();
+    final int m = r + c;
 
-    final vals = <BigInt>[...values];
+    List<BigInt> vals = [...values];
     // pads input
     vals.add(BigInt.one);
-    for (var idx = 0; idx < (-vals.length % r); idx++) {
+    for (int idx = 0; idx < (-vals.length % r); idx++) {
       vals.add(BigInt.zero);
     }
 
     // Why not 'r' here ?
-    var state = List<BigInt>.generate(m, (index) => BigInt.zero);
+    List<BigInt> state = List<BigInt>.generate(m, (index) => BigInt.zero);
 
-    var idx = 0;
+    int idx = 0;
     while (idx < vals.length) {
-      final tmp = <BigInt>[];
-      for (var i = 0; i < r; i++) {
+      List<BigInt> tmp = [];
+      for (int i = 0; i < r; i++) {
         tmp.add(state[i] + vals[idx + i]);
       }
       tmp.add(state[state.length - 1]);

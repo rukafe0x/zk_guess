@@ -1,3 +1,0 @@
-starkli declare contracts/v2.2.0/target/dev/starknet_dart_Balance.sierra.json --private-key $STARKNET_PRIVATE_KEY 
-starkli declare contracts/v2.2.0/target/dev/starknet_dart_FocusAccount.sierra.json --private-key $STARKNET_PRIVATE_KEY
-starkli declare contracts/v2.2.0/target/dev/starknet_dart_Counter.sierra.json --private-key $STARKNET_PRIVATE_KEY

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import '../secure_store.dart';
-import '__generated__/secure_store_bridge.dart';
-import 'utils.dart';
+import 'package:secure_store/secure_store.dart';
+import 'package:secure_store/src/__generated__/secure_store_bridge.dart';
+import 'package:secure_store/src/utils.dart';
 
 /// Stores secrets encrypted with biometric authentication when available.
 class BiometricsStore implements SecureStore {
@@ -36,10 +36,8 @@ class BiometricsStore implements SecureStore {
   }) async {
     final secret = await Future.any([
       SecureStoreBridge().getSecret(key, options),
-      Future.delayed(
-        const Duration(seconds: 5),
-        () => null,
-      ), // Prevents hanging when secret not found
+      Future.delayed(Duration(seconds: 5),
+          () => null) // Prevents hanging when secret not found
     ]);
     return secret == null ? null : bytesToString(secret);
   }

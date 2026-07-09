@@ -7,8 +7,7 @@ environment:
   sdk: ^3.0.5
 
 dependencies:
-  starknet:
-    path: ../starknet
+  starknet: ^0.2.0
   freezed_annotation: ^2.4.4
   http: ^1.2.2
   json_annotation: ^4.9.0

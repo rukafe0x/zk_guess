@@ -130,15 +130,14 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
     }
   }
 
-  AvnuProvider getAvnuProvider({BigInt? publicKey, String? apiKey}) {
+  AvnuPaymasterProvider getAvnuPaymasterProvider({String? apiKey}) {
     final env = dotenv.env;
     if (env['AVNU_RPC'] == null) {
       throw Exception('AVNU_RPC environment variable is not set');
     }
 
-    return AvnuJsonRpcProvider(
+    return AvnuPaymasterProviderImpl(
       nodeUri: Uri.parse(env['AVNU_RPC']!),
-      publicKey: publicKey,
       apiKey: apiKey,
     );
   }
@@ -184,23 +183,20 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
       }
 
       const apiKey = '04a163bf-65e0-4ff7-870d-64379f3d6c92';
-      final publicKey = BigInt.parse(
-        "0429c489be63b21c399353e03a9659cfc1650b24bae1e9ebdde0aef2b38deb44",
-        radix: 16,
-      );
-      final avnuProvider = getAvnuProvider(
-        publicKey: publicKey,
-        apiKey: apiKey,
-      );
+      final paymaster = getAvnuPaymasterProvider(apiKey: apiKey);
 
       // generate a new private key (not cryptographically secure)
       // only for MVP purpose
       final randomValue = Random().nextInt(1 << 32);
       final ownerSigner = StarkSigner(privateKey: Felt.fromInt(randomValue));
-      final classHash = Felt.fromHexString(
-        '0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003',
+      final accountSigner = ArgentXGuardianAccountSigner(
+        ownerSigner: ownerSigner,
+        guardianSigner: null,
       );
-      final calldata = [ownerSigner.publicKey, Felt.zero];
+      final classHash = Felt.fromHexString(
+        '0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f',
+      );
+      final calldata = accountSigner.constructorCalldata;
       final salt = ownerSigner.publicKey;
       final accountAddress = Contract.computeAddress(
         classHash: classHash,
@@ -208,20 +204,22 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
         salt: salt,
       );
 
-      final deploymentData = AvnuDeploymentData(
+      final deployment = AccountDeploymentData(
+        address: accountAddress.toHexString(),
         classHash: classHash.toHexString(),
         salt: ownerSigner.publicKey.toHexString(),
-        unique: Felt.zero.toHexString(),
         calldata: calldata.map((e) => e.toHexString()).toList(),
-        sigdata: [],
       );
-      final avnuDeploy = await avnuProvider.deployAccount(
-        AvnuDeployAccountRequest(
-          userAddress: accountAddress.toHexString(),
-          deploymentData: deploymentData,
-        ),
+
+      const parameters = UserParameters(feeMode: FeeMode.sponsored());
+      final build = await paymaster.buildTransaction(
+        UserTransaction.deploy(deployment: deployment),
+        parameters,
       );
-      final result = avnuDeploy as AvnuDeployAccountResult;
+      final result = await paymaster.executeTransaction(
+        ExecutableUserTransaction.deploy(deployment: deployment),
+        build.parameters,
+      );
       print('AVNU Transaction hash: ${result.transactionHash}');
       print('Account address: ${accountAddress.toHexString()}');
 

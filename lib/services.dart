@@ -60,13 +60,50 @@ final provider = JsonRpcProvider(
 );
 final contractAddress = dotenv.env['CONTRACT_ADDRESS'] ?? '';
 
+// starknet.dart truncates fractional feeMultiplier via Felt.fromDouble (1.2 → 1).
+const _feeBuffer = 1.5;
+
+class _BufferedFee {
+  final Felt l1GasConsumed;
+  final Felt l1GasPrice;
+  final Felt l1DataGasConsumed;
+  final Felt l1DataGasPrice;
+  final Felt l2GasConsumed;
+  final Felt l2GasPrice;
+
+  _BufferedFee(FeeEstimations maxFee)
+      : l1GasConsumed = maxFee.l1GasConsumed.multiplyByDouble(_feeBuffer),
+        l1GasPrice = maxFee.l1GasPrice.multiplyByDouble(_feeBuffer),
+        l1DataGasConsumed =
+            maxFee.l1DataGasConsumed.multiplyByDouble(_feeBuffer),
+        l1DataGasPrice = maxFee.l1DataGasPrice.multiplyByDouble(_feeBuffer),
+        l2GasConsumed = maxFee.l2GasConsumed.multiplyByDouble(_feeBuffer),
+        l2GasPrice = maxFee.l2GasPrice.multiplyByDouble(_feeBuffer);
+}
+
+Future<void> _waitForSuccessfulTx(String txHash) async {
+  final accepted = await waitForAcceptance(
+    transactionHash: txHash,
+    provider: provider,
+  );
+  if (!accepted) {
+    throw Exception('Transaction reverted or was not accepted: $txHash');
+  }
+}
+
 Future<Account> getSignerAccount() async {
   final address = await getSecretAccountAddress();
   final privateKey = await getSecretAccountPrivateKey();
-  return getAccount(
+  final ownerSigner = StarkSigner(privateKey: Felt.fromHexString(privateKey));
+  final accountSigner = ArgentXGuardianAccountSigner(
+    ownerSigner: ownerSigner,
+    guardianSigner: null,
+  );
+  return Account(
+    provider: provider,
+    signer: accountSigner,
     accountAddress: Felt.fromHexString(address),
-    privateKey: Felt.fromHexString(privateKey),
-    nodeUri: Uri.parse(dotenv.env['STARKNET_NODE_URI'] ?? ''),
+    chainId: StarknetChainId.testNet,
   );
 }
 
@@ -95,6 +132,7 @@ Future<String> invokeCreateGame(
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -112,19 +150,19 @@ Future<String> invokeCreateGame(
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
   final txHash = response.when(
     result: (result) => result.transaction_hash,
     error: (err) => throw Exception("Failed to invoke register commitment"),
   );
   print('Invoking register commitment TX : $txHash');
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
   return txHash;
 }
 
@@ -151,6 +189,7 @@ Future<String> invokeVerifyIntent(
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -165,19 +204,19 @@ Future<String> invokeVerifyIntent(
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
   final txHash = response.when(
     result: (result) => result.transaction_hash,
     error: (err) => throw Exception("Failed to invoke verify intent"),
   );
   print('Invoking verify intent TX : $txHash');
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
   return txHash;
 }
 
@@ -199,6 +238,7 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -209,12 +249,12 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
 
   final txHash = response.when(
@@ -222,7 +262,7 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
     error: (err) => throw Exception("Failed to approve entry fee"),
   );
 
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
 
   print('Approving entry fee TX: $txHash');
   return txHash;
@@ -239,6 +279,7 @@ Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -249,19 +290,19 @@ Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
   final txHash = response.when(
     result: (result) => result.transaction_hash,
     error: (err) => throw Exception("Failed to invoke write intent"),
   );
   print('Invoking write intent TX : $txHash');
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
   return txHash;
 }
 
@@ -276,6 +317,7 @@ Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -286,19 +328,19 @@ Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
   final txHash = response.when(
     result: (result) => result.transaction_hash,
     error: (err) => throw Exception("Failed to invoke join game"),
   );
   print('Invoking join game TX : $txHash');
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
   return txHash;
 }
 
@@ -313,6 +355,7 @@ Future<String> invokeClaimReward(Uint256 gameId) async {
       ),
     ],
   );
+  final fee = _BufferedFee(maxFee);
   final response = await account.execute(
     functionCalls: [
       FunctionCall(
@@ -323,19 +366,19 @@ Future<String> invokeClaimReward(Uint256 gameId) async {
     ],
     incrementNonceIfNonceRelatedError: true,
     maxAttempts: 5,
-    l1GasConsumed: maxFee.l1GasConsumed,
-    l1GasPrice: maxFee.l1GasPrice,
-    l2GasConsumed: maxFee.l2GasConsumed,
-    l2GasPrice: maxFee.l2GasPrice,
-    l1DataGasConsumed: maxFee.l1DataGasConsumed,
-    l1DataGasPrice: maxFee.l1DataGasPrice,
+    l1GasConsumed: fee.l1GasConsumed,
+    l1GasPrice: fee.l1GasPrice,
+    l2GasConsumed: fee.l2GasConsumed,
+    l2GasPrice: fee.l2GasPrice,
+    l1DataGasConsumed: fee.l1DataGasConsumed,
+    l1DataGasPrice: fee.l1DataGasPrice,
   );
   final txHash = response.when(
     result: (result) => result.transaction_hash,
     error: (err) => throw Exception("Failed to invoke claim reward"),
   );
   print('Invoking claim reward TX : $txHash');
-  await waitForAcceptance(transactionHash: txHash, provider: provider);
+  await _waitForSuccessfulTx(txHash);
   return txHash;
 }
 

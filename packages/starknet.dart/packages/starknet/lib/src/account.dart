@@ -115,6 +115,7 @@ class Account {
       transactions: functionCalls,
       contractAddress: accountAddress,
       chainId: chainId,
+      entryPointSelectorName: '__execute__',
       nonce: nonce,
       resourceBounds: resourceBounds,
       accountDeploymentData: accountDeploymentData,
@@ -128,6 +129,7 @@ class Account {
 
     final calldata = c.functionCallsToCalldata(
       functionCalls: functionCalls,
+      useLegacyCalldata: false,
     );
 
     broadcastedTxn = BroadcastedInvokeTxnV3(
@@ -244,13 +246,7 @@ class Account {
     nonce = nonce ?? defaultNonce;
     contractAddressSalt = contractAddressSalt ?? accountSigner.publicKey;
     final resourceBounds = _getResourceBounds(
-      Felt.zero,
-      Felt.zero,
-      Felt.zero,
-      Felt.zero,
-      Felt.zero,
-      Felt.zero,
-    );
+        Felt.zero, Felt.zero, Felt.zero, Felt.zero, Felt.zero, Felt.zero);
 
     contractAddress = contractAddress ?? Felt.zero;
     // These values are for future use (until then they are empty or zero)
@@ -411,11 +407,12 @@ class Account {
       l2GasPrice,
     );
 
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
       final signature = await signer.signTransactions(
         transactions: functionCalls,
         contractAddress: accountAddress,
         chainId: chainId,
+        entryPointSelectorName: '__execute__',
         nonce: nonce!,
         resourceBounds: resourceBounds,
         accountDeploymentData: accountDeploymentData,
@@ -429,6 +426,7 @@ class Account {
 
       final calldata = c.functionCallsToCalldata(
         functionCalls: functionCalls,
+        useLegacyCalldata: false,
       );
 
       response = await provider.addInvokeTransaction(
@@ -864,7 +862,7 @@ Felt? getDeployedContractAddress(GetTransactionReceipt txReceipt) {
       for (final event in r.events) {
         // contract constructor can generate some event also
         if (event.fromAddress == udcAddress) {
-          return event.data?[0];
+          return event.data[0];
         }
       }
       throw Exception('UDC deployer event not found');

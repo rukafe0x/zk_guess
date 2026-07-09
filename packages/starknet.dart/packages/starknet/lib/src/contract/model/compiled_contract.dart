@@ -144,7 +144,7 @@ class FlattenSierraContractClass with _$FlattenSierraContractClass {
     required List<String> sierraProgram,
     required EntryPointsByType entryPointsByType,
     required String contractClassVersion,
-    required String abi,
+    @JsonKey(includeIfNull: false) String? abi,
   }) = _FlattenSierraClass;
 
   factory FlattenSierraContractClass.fromJson(Map<String, Object?> json) =>
@@ -184,9 +184,9 @@ class CASMCompiledContract
       for (final builtin in entrypoint.builtins) {
         builtins.add(Felt.fromString(builtin).toBigInt());
       }
-      buffer.add(poseidonHasher.hashMany(builtins));
+      buffer.add(blakeHasher.hashMany(builtins));
     }
-    final externals = poseidonHasher.hashMany(buffer);
+    final externals = blakeHasher.hashMany(buffer);
 
     buffer.clear();
     for (final entrypoint in entryPointsByType.l1Handler) {
@@ -197,9 +197,9 @@ class CASMCompiledContract
       for (final builtin in entrypoint.builtins) {
         builtins.add(Felt.fromString(builtin).toBigInt());
       }
-      buffer.add(poseidonHasher.hashMany(builtins));
+      buffer.add(blakeHasher.hashMany(builtins));
     }
-    final l1handlers = poseidonHasher.hashMany(buffer);
+    final l1handlers = blakeHasher.hashMany(buffer);
     buffer.clear();
 
     for (final entrypoint in entryPointsByType.constructor) {
@@ -210,22 +210,23 @@ class CASMCompiledContract
       for (final builtin in entrypoint.builtins) {
         builtins.add(Felt.fromString(builtin).toBigInt());
       }
-      buffer.add(poseidonHasher.hashMany(builtins));
+      buffer.add(blakeHasher.hashMany(builtins));
     }
-    final constructors = poseidonHasher.hashMany(buffer);
+    final constructors = blakeHasher.hashMany(buffer);
 
     return EntryPointsHashes(externals, l1handlers, constructors);
   }
 
   BigInt _byteCodeHash() {
-    return poseidonHasher.hashMany(bytecode);
+    return blakeHasher.hashMany(bytecode);
   }
 
   @override
   BigInt classHash() {
     final elements = <BigInt>[];
     //add COMPILED_CLASS_V1 element when compilerVersion >= 1.1.0
-    final version = compilerVersion.split('.').map(int.parse).toList();
+    final version =
+        compilerVersion.split('.').map((e) => int.parse(e)).toList();
     if (version[0] > 1 || (version[0] == 1 && version[1] >= 1)) {
       elements.add(Felt.fromString(COMPILED_CLASS_V1).toBigInt());
     }
@@ -243,7 +244,7 @@ class CASMCompiledContract
       elements
           .add(computeCompiledClassHashInner(bytecode, bytecodeSegmentLengths));
     }
-    return poseidonHasher.hashMany(elements);
+    return blakeHasher.hashMany(elements);
   }
 }
 
@@ -401,7 +402,7 @@ String compressProgram(Map<String, Object?> program) {
 class PythonicJsonEncoder extends Converter<Object?, String> {
   final bool filterRuntimeType;
   final bool sortSymbol;
-  final JsonEncoder _encoder = const JsonEncoder();
+  final JsonEncoder _encoder = JsonEncoder();
 
   PythonicJsonEncoder({this.filterRuntimeType = true, this.sortSymbol = true});
 
@@ -530,20 +531,26 @@ abstract class _JsonStringifier {
         switch (charCode) {
           case backspace:
             writeCharCode(char_b);
+            break;
           case tab:
             writeCharCode(char_t);
+            break;
           case newline:
             writeCharCode(char_n);
+            break;
           case formFeed:
             writeCharCode(char_f);
+            break;
           case carriageReturn:
             writeCharCode(char_r);
+            break;
           default:
             writeCharCode(char_u);
             writeCharCode(char_0);
             writeCharCode(char_0);
             writeCharCode(hexDigit((charCode >> 4) & 0xf));
             writeCharCode(hexDigit(charCode & 0xf));
+            break;
         }
       } else if (charCode == quote || charCode == backslash) {
         if (i > offset) writeStringSlice(s, offset, i);

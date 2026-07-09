@@ -120,14 +120,10 @@ class _GameScreenState extends State<GameScreen>
         return;
       }
 
-      final nodeUri = dotenv.env['STARKNET_NODE_URI'];
-      if (nodeUri == null || nodeUri.isEmpty) {
-        throw Exception('STARKNET_NODE_URI not found in .env file');
+      final wsUrl = dotenv.env['STARKNET_WSS'];
+      if (wsUrl == null || wsUrl.isEmpty) {
+        throw Exception('STARKNET_WSS not found in .env file');
       }
-
-      final wsUrl = nodeUri
-          .replaceFirst('https://', 'wss://')
-          .replaceFirst('http://', 'ws://');
 
       _wsChannel = StarknetWebSocketChannel(nodeUrl: wsUrl);
       await _wsChannel!.waitForConnection();
@@ -211,7 +207,7 @@ class _GameScreenState extends State<GameScreen>
   Future<void> _subscribeToContractEvents(String contractAddress) async {
     try {
       _wsChannel!.onEvents = (channel, response) async {
-        _handleContractEvent(response.result);
+        _handleContractEvent(response.result.event);
       };
       final contractAddressFelt = Felt.fromHexString(contractAddress);
       await _wsChannel!.subscribeEvents(contractAddressFelt, [], null);
@@ -247,7 +243,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   String? _extractGameIdFromEvent(dynamic eventData) {
-    if (eventData is WssSubscriptionEventResult) {
+    if (eventData is EmittedEvent) {
       try {
         return eventData.keys[1].toBigInt().toString();
       } catch (_) {
@@ -258,7 +254,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   String? _extractStatusFromEvent(dynamic eventData) {
-    if (eventData is WssSubscriptionEventResult) {
+    if (eventData is EmittedEvent) {
       Felt felt = eventData.data[0];
       return felt.toSymbol();
     }
@@ -266,7 +262,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   String? _extractValueFromEvent(dynamic eventData) {
-    if (eventData is WssSubscriptionEventResult) {
+    if (eventData is EmittedEvent) {
       try {
         return eventData.data[1].toBigInt().toString();
       } catch (_) {
@@ -277,14 +273,14 @@ class _GameScreenState extends State<GameScreen>
   }
 
   String? _extractTransactionHash(dynamic eventData) {
-    if (eventData is WssSubscriptionEventResult) {
+    if (eventData is EmittedEvent) {
       return eventData.transactionHash.toHexString();
     }
     return null;
   }
 
   String? _extractBlockNumber(dynamic eventData) {
-    if (eventData is WssSubscriptionEventResult) {
+    if (eventData is EmittedEvent) {
       return eventData.blockNumber.toString();
     }
     return null;

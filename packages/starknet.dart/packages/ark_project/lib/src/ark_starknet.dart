@@ -40,7 +40,7 @@ class ArkStarknet {
     Felt? nonce,
     List<FunctionCall>? additionalFunctionCalls,
   }) async {
-    startDate = startDate ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    startDate = startDate ?? (DateTime.now().millisecondsSinceEpoch ~/ (1000));
     endDate = endDate ?? (startDate + 3 * 24 * 60 * 60);
 
     final order = OrderV1(
@@ -273,7 +273,7 @@ class ArkStarknet {
     Felt? l2GasPrice,
     Felt? nonce,
   }) async {
-    startDate = startDate ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    startDate = startDate ?? (DateTime.now().millisecondsSinceEpoch ~/ (1000));
     endDate = endDate ?? (startDate + 3 * 24 * 60 * 60);
 
     final bigIntAmount = BigInt.from(startAmount * 1e18);
