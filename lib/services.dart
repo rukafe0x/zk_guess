@@ -3,9 +3,6 @@
 import 'package:starknet/starknet.dart';
 import 'package:starknet_provider/starknet_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-//import 'package:starknet_sports_pool/utils/utils.dart';
-//import '../models/game.dart';
-//import '../models/tournament_template.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
@@ -107,16 +104,20 @@ Future<Account> getSignerAccount() async {
   );
 }
 
+Future<Account> _resolveAccount(Account? account) async =>
+    account ?? await getSignerAccount();
+
 // invoke zk_guess contract to register the commitment as
 // specified in zk_guess.cairo
 // invoke the contract with the hash as the calldata
 Future<String> invokeCreateGame(
   Uint256 gameId,
   Uint256 hash,
-  Uint256 reward,
-) async {
-  final account = await getSignerAccount();
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+  Uint256 reward, {
+  Account? account,
+}) async {
+  final signer = await _resolveAccount(account);
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -133,7 +134,7 @@ Future<String> invokeCreateGame(
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -171,16 +172,17 @@ Future<String> invokeCreateGame(
 
 Future<String> invokeVerifyIntent(
   Uint256 gameId,
-  List<Felt> fullProofWithHints,
-) async {
-  final account = await getSignerAccount();
+  List<Felt> fullProofWithHints, {
+  Account? account,
+}) async {
+  final signer = await _resolveAccount(account);
   final calldata = [
     gameId.low,
     gameId.high,
     ...fullProofWithHints.map((felt) => felt),
   ];
   print("Calldata: $calldata");
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -190,7 +192,7 @@ Future<String> invokeVerifyIntent(
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -220,8 +222,8 @@ Future<String> invokeVerifyIntent(
   return txHash;
 }
 
-Future<String> approveEntryFee(Uint256 entryFee) async {
-  final account = await getSignerAccount();
+Future<String> approveEntryFee(Uint256 entryFee, {Account? account}) async {
+  final signer = await _resolveAccount(account);
   final strkTokenAddress = dotenv.env['STRK_TOKEN_ADDRESS'] ?? '';
   final calldata = [
     Felt.fromHexString(contractAddress), // spender (contract address)
@@ -229,7 +231,7 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
     entryFee.high, // amount high
   ];
   // first estimate the max fee
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(strkTokenAddress),
@@ -239,7 +241,7 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(strkTokenAddress),
@@ -268,9 +270,13 @@ Future<String> approveEntryFee(Uint256 entryFee) async {
   return txHash;
 }
 
-Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
-  final account = await getSignerAccount();
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+Future<String> invokeWriteIntent(
+  Uint256 gameId,
+  Uint256 intent, {
+  Account? account,
+}) async {
+  final signer = await _resolveAccount(account);
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -280,7 +286,7 @@ Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -306,9 +312,13 @@ Future<String> invokeWriteIntent(Uint256 gameId, Uint256 intent) async {
   return txHash;
 }
 
-Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
-  final account = await getSignerAccount();
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+Future<String> invokeJoinGame(
+  Uint256 gameId,
+  Uint256 commitment, {
+  Account? account,
+}) async {
+  final signer = await _resolveAccount(account);
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -318,7 +328,7 @@ Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -344,9 +354,9 @@ Future<String> invokeJoinGame(Uint256 gameId, Uint256 commitment) async {
   return txHash;
 }
 
-Future<String> invokeClaimReward(Uint256 gameId) async {
-  final account = await getSignerAccount();
-  final maxFee = await account.getEstimateMaxFeeForInvokeTx(
+Future<String> invokeClaimReward(Uint256 gameId, {Account? account}) async {
+  final signer = await _resolveAccount(account);
+  final maxFee = await signer.getEstimateMaxFeeForInvokeTx(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -356,7 +366,7 @@ Future<String> invokeClaimReward(Uint256 gameId) async {
     ],
   );
   final fee = _BufferedFee(maxFee);
-  final response = await account.execute(
+  final response = await signer.execute(
     functionCalls: [
       FunctionCall(
         contractAddress: Felt.fromHexString(contractAddress),
@@ -382,8 +392,8 @@ Future<String> invokeClaimReward(Uint256 gameId) async {
   return txHash;
 }
 
-Future<Felt> getElapsedBlocks(Uint256 gameId) async {
-  final account = await getSignerAccount();
+Future<Felt> getElapsedBlocks(Uint256 gameId, {Account? account}) async {
+  final signer = await _resolveAccount(account);
   // Get current block number and the block number of the last intent
   // then return the difference
   final BlockNumber currentBlockNumber = await provider.blockNumber();
@@ -394,7 +404,7 @@ Future<Felt> getElapsedBlocks(Uint256 gameId) async {
   // Get the block number of the last intent
   // using get_game_properties from the contract
   final contract = Contract(
-    account: account,
+    account: signer,
     address: Felt.fromHexString(contractAddress),
   );
   final List<Felt> gameProperties = await contract.call("get_game_properties", [
@@ -429,10 +439,10 @@ class GameStruct {
 }
 
 // Get game properties and return GameStruct
-Future<GameStruct> getGameProperties(Uint256 gameId) async {
-  final account = await getSignerAccount();
+Future<GameStruct> getGameProperties(Uint256 gameId, {Account? account}) async {
+  final signer = await _resolveAccount(account);
   final contract = Contract(
-    account: account,
+    account: signer,
     address: Felt.fromHexString(contractAddress),
   );
   final List<Felt> gameProperties = await contract.call("get_game_properties", [

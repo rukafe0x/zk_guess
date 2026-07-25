@@ -1,18 +1,16 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mopro_flutter_bindings/mopro_flutter_bindings.dart';
 import 'package:starknet/starknet.dart';
 import 'package:starknet_provider/starknet_provider.dart';
-import 'package:poseidon/poseidon.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'gameplay_helpers.dart';
 import 'services.dart';
-import 'package:mopro_flutter/mopro_flutter.dart';
-import 'package:mopro_flutter/mopro_types.dart';
-import 'dart:async';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zk_guess/bridge_generated.dart/frb_generated.dart';
-import 'package:zk_guess/bridge_generated.dart/api.dart';
 
 class GameScreen extends StatefulWidget {
   final String accountAddress;
@@ -33,7 +31,6 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   CircomProofResult? _circomProofResult;
   bool? _circomValid;
-  final _moproFlutterPlugin = MoproFlutter();
   bool isProving = false;
   Exception? _error;
   late TabController _tabController;
@@ -89,7 +86,6 @@ class _GameScreenState extends State<GameScreen>
       });
     }
 
-    _initializeRust();
     _initializeWebSocketConnection();
     _startElapsedBlocksPolling();
 
@@ -98,11 +94,6 @@ class _GameScreenState extends State<GameScreen>
     if ((_latestStatus == 'created') && (_myRole == 'Player 2')) {
       _controllerX.text = '';
     }
-  }
-
-  Future<void> _initializeRust() async {
-    // Initialize the FFI bridge once at the start of the application
-    await RustLib.init();
   }
 
   @override
@@ -292,18 +283,7 @@ class _GameScreenState extends State<GameScreen>
         return;
       }
       final x = BigInt.parse(_controllerX.text);
-      BigInt salt;
-      BigInt hash;
-      final feltPrime =
-          BigInt.two.pow(251) +
-          BigInt.from(17) * BigInt.two.pow(192) +
-          BigInt.one;
-
-      // Repeat hash calculation until hash is a valid felt value
-      do {
-        salt = BigInt.from(Random().nextInt(4294967296));
-        hash = poseidon2([x, salt]);
-      } while (hash >= feltPrime);
+      final commitment = computeCommitment(x);
       //Store x, salt and hash in FlutterSecureStorage
       await _storage.write(
         key: 'x_${widget.accountAddress}',
@@ -311,11 +291,11 @@ class _GameScreenState extends State<GameScreen>
       );
       await _storage.write(
         key: 'salt_${widget.accountAddress}',
-        value: salt.toString(),
+        value: commitment.salt.toString(),
       );
       await _storage.write(
         key: 'hash_${widget.accountAddress}',
-        value: hash.toString(),
+        value: commitment.hash.toString(),
       );
     } catch (e) {
       setState(() => _error = Exception("Error calculating hash: $e"));
@@ -1348,64 +1328,19 @@ class _GameScreenState extends State<GameScreen>
                   bool? valid;
                   try {
                     // Generate proof first
-                    CircomProofResult? proofResult;
                     final salt = await _storage.read(
                       key: 'salt_${widget.accountAddress}',
                     );
                     final hash = await _storage.read(
                       key: 'hash_${widget.accountAddress}',
                     );
-                    var inputs =
-                        '{"x":["${_controllerX.text}"],"salt":["$salt"],"h":["$hash"],"y":["${_controllerY.text}"]}';
-                    proofResult = await _moproFlutterPlugin.generateCircomProof(
-                      "assets/guess_0001.zkey",
-                      inputs,
-                      ProofLib.arkworks,
+                    final calldataElements = await proveAndBuildGaragaCalldata(
+                      x: BigInt.parse(_controllerX.text),
+                      salt: BigInt.parse(salt!),
+                      h: BigInt.parse(hash!),
+                      y: BigInt.parse(_controllerY.text),
                     );
 
-                    // Then verify
-                    // 1. Prepare the JSON strings from your `proofResult`
-                    // Since you are using SnarkJS output (which is JSON), we use jsonEncode on the parts
-                    // that aren't already strings (like the public inputs array).
-                    var proofMap = proofResult!.toMap();
-
-                    // We must ensure the inputs are serialized as strings:
-                    final vkJson = await rootBundle.loadString(
-                      'assets/garaga_verification_key.json',
-                    );
-                    final proofJson = jsonEncode(proofMap['proof']);
-                    final publicInputsJson = jsonEncode(proofMap['inputs']);
-
-                    // 2. Create the input struct for the Rust function
-                    final input = Groth16Input(
-                      vkJson: vkJson,
-                      proofJson: proofJson,
-                      publicInputsJson: publicInputsJson,
-                    );
-
-                    // 3. Call the Rust function directly!
-                    // This replaces your entire http.post block.
-                    final calldataResult = await generateGroth16Calldata(
-                      input: input,
-                    );
-
-                    // 4. Process the flat list of hex strings into Starknet Felt list
-                    final calldataElements = calldataResult.calldata
-                        .map(
-                          // The Rust code returns '0x...' hex strings, which BigInt can parse directly.
-                          (felt) => Felt(BigInt.parse(felt)),
-                        )
-                        .toList();
-
-                    // 5. Prepend the length as the first element (Starknet Calldata Convention)
-                    // You need to import 'dart:math' for BigInt, but typically you use the library's
-                    // BigInt, like starknet.dart's. Felt(x) constructor should handle `int` for small numbers.
-                    var calldata = [
-                      Felt(
-                        BigInt.from(calldataElements.length),
-                      ), // Length of the elements
-                      ...calldataElements,
-                    ];
                     final txHash = await invokeVerifyIntent(
                       Uint256.fromBigInt(BigInt.parse(_controllerGameId.text)),
                       calldataElements,

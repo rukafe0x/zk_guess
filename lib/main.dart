@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:starknet/starknet.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mopro_flutter_bindings/mopro_flutter_bindings.dart';
+import 'package:starknet/starknet.dart';
 import 'account_selection_screen.dart';
 import 'services.dart';
 import 'main_screen.dart';
@@ -8,6 +9,7 @@ import 'main_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await RustLib.init();
   runApp(const MyApp());
 }
 

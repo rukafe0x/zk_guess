@@ -194,7 +194,6 @@ mod ZKPes {
             // Check if blocknumber has advanced 1000 blocks since last intent
             assert(get_block_info().block_number-game.last_intent_blocknumber.read()<=1000, '1000 blocks since last intent');
 
-            let reward=self.games.entry(game_id).reward.read();
             // verify the proof and get the public inputs
             // calling this external contract function 
             // deployed in 0x0450e153f3eb3ec93d17ffb41cc00a8993d1b1f188773e4e6a228c0332004b88
@@ -203,7 +202,7 @@ mod ZKPes {
             //     full_proof_with_hints: Span<felt252>,
             // ) -> Option<Span<u256>> {
             let verify_groth16_proof_bn254_dispatcher = IVerifyGroth16ProofBN254Dispatcher {
-                contract_address: 0x0450e153f3eb3ec93d17ffb41cc00a8993d1b1f188773e4e6a228c0332004b88.try_into().unwrap() // VerifyGroth16ProofBN254 Contract Address
+                contract_address: 0x03bf0095806f53a27d89fd105159057f2bdd190432c55e152c517efb4c5d2cd6.try_into().unwrap() // VerifyGroth16ProofBN254 Contract Address
             };
             let public_inputs=verify_groth16_proof_bn254_dispatcher.verify_groth16_proof_bn254(full_proof_with_hints);
             match public_inputs {

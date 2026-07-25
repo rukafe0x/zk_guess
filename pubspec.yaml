@@ -40,8 +40,9 @@ dependencies:
       path: packages/starknet.dart/packages/starknet
   starknet_provider:
       path: packages/starknet.dart/packages/starknet_provider
-  mopro_flutter:
-    path: ./mopro_flutter
+  mopro_flutter_bindings:
+    path: ./mopro_flutter_bindings
+  path_provider: ^2.1.5
   flutter_dotenv: ^5.1.0
   flutter_secure_storage: ^9.0.0
   avnu_provider:
