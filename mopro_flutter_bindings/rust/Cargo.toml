@@ -1,10 +1,10 @@
 [dependencies]
 flutter_rust_bridge = "=2.11.1"
 
-[dependencies.mopro-example-app2]
+[dependencies.mopro-example-app3]
 default-features = false
 features = ["flutter"]
-path = "C:/Users/usuario/StudioProjects/mopro-example-app2"
+path = "../../../mopro-example-app3"
 version = "0.1.0"
 
 [lib]

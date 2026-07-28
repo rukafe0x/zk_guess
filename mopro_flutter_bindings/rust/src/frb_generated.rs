@@ -28,7 +28,7 @@
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
-use mopro_example_app2::*;
+use mopro_example_app3::*;
 
 // Section: boilerplate
 
@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -421194133;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -746506353;
 
 // Section: executor
 
@@ -46,7 +46,7 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 // Section: wire_funcs
 
-fn wire__mopro_example_app2__circom_proof_default_impl(
+fn wire__mopro_example_app3__circom_proof_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -72,14 +72,14 @@ fn wire__mopro_example_app2__circom_proof_default_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok =
-                        Result::<_, ()>::Ok(mopro_example_app2::CircomProof::default())?;
+                        Result::<_, ()>::Ok(mopro_example_app3::CircomProof::default())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__g_1_default_impl(
+fn wire__mopro_example_app3__g_1_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -104,14 +104,14 @@ fn wire__mopro_example_app2__g_1_default_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(mopro_example_app2::G1::default())?;
+                    let output_ok = Result::<_, ()>::Ok(mopro_example_app3::G1::default())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__g_2_default_impl(
+fn wire__mopro_example_app3__g_2_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -136,14 +136,14 @@ fn wire__mopro_example_app2__g_2_default_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(mopro_example_app2::G2::default())?;
+                    let output_ok = Result::<_, ()>::Ok(mopro_example_app3::G2::default())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__generate_circom_groth16_garaga_calldata_impl(
+fn wire__mopro_example_app3__generate_circom_groth16_garaga_calldata_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -166,12 +166,12 @@ fn wire__mopro_example_app2__generate_circom_groth16_garaga_calldata_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_proof_result =
-                <mopro_example_app2::CircomProofResult>::sse_decode(&mut deserializer);
+                <mopro_example_app3::CircomProofResult>::sse_decode(&mut deserializer);
             let api_verification_key_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::generate_circom_groth16_garaga_calldata(
+                    let output_ok = mopro_example_app3::generate_circom_groth16_garaga_calldata(
                         api_proof_result,
                         api_verification_key_json,
                     )?;
@@ -181,7 +181,7 @@ fn wire__mopro_example_app2__generate_circom_groth16_garaga_calldata_impl(
         },
     )
 }
-fn wire__mopro_example_app2__generate_circom_proof_impl(
+fn wire__mopro_example_app3__generate_circom_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -205,11 +205,11 @@ fn wire__mopro_example_app2__generate_circom_proof_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_zkey_path = <String>::sse_decode(&mut deserializer);
             let api_circuit_inputs = <String>::sse_decode(&mut deserializer);
-            let api_proof_lib = <mopro_example_app2::ProofLib>::sse_decode(&mut deserializer);
+            let api_proof_lib = <mopro_example_app3::ProofLib>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::generate_circom_proof(
+                    let output_ok = mopro_example_app3::generate_circom_proof(
                         api_zkey_path,
                         api_circuit_inputs,
                         api_proof_lib,
@@ -220,7 +220,7 @@ fn wire__mopro_example_app2__generate_circom_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__generate_gnark_proof_impl(
+fn wire__mopro_example_app3__generate_gnark_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -248,7 +248,7 @@ fn wire__mopro_example_app2__generate_gnark_proof_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::generate_gnark_proof(
+                    let output_ok = mopro_example_app3::generate_gnark_proof(
                         api__r1cs_path,
                         api__pk_path,
                         api__witness_json,
@@ -259,7 +259,7 @@ fn wire__mopro_example_app2__generate_gnark_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__generate_halo2_proof_impl(
+fn wire__mopro_example_app3__generate_halo2_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -288,7 +288,7 @@ fn wire__mopro_example_app2__generate_halo2_proof_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::generate_halo2_proof(
+                    let output_ok = mopro_example_app3::generate_halo2_proof(
                         api__srs_path,
                         api__pk_path,
                         api__circuit_inputs,
@@ -299,7 +299,7 @@ fn wire__mopro_example_app2__generate_halo2_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__generate_noir_proof_impl(
+fn wire__mopro_example_app3__generate_noir_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -330,7 +330,7 @@ fn wire__mopro_example_app2__generate_noir_proof_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::generate_noir_proof(
+                    let output_ok = mopro_example_app3::generate_noir_proof(
                         api__circuit_path,
                         api__srs_path,
                         api__inputs,
@@ -344,7 +344,7 @@ fn wire__mopro_example_app2__generate_noir_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__get_noir_verification_key_impl(
+fn wire__mopro_example_app3__get_noir_verification_key_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -373,7 +373,7 @@ fn wire__mopro_example_app2__get_noir_verification_key_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::get_noir_verification_key(
+                    let output_ok = mopro_example_app3::get_noir_verification_key(
                         api__circuit_path,
                         api__srs_path,
                         api__on_chain,
@@ -385,7 +385,7 @@ fn wire__mopro_example_app2__get_noir_verification_key_impl(
         },
     )
 }
-fn wire__mopro_example_app2__halo_2_proof_result_default_impl(
+fn wire__mopro_example_app3__halo_2_proof_result_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -411,14 +411,14 @@ fn wire__mopro_example_app2__halo_2_proof_result_default_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok =
-                        Result::<_, ()>::Ok(mopro_example_app2::Halo2ProofResult::default())?;
+                        Result::<_, ()>::Ok(mopro_example_app3::Halo2ProofResult::default())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__init_app_impl(
+fn wire__mopro_example_app3__init_app_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -444,7 +444,7 @@ fn wire__mopro_example_app2__init_app_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok({
-                        mopro_example_app2::init_app();
+                        mopro_example_app3::init_app();
                     })?;
                     Ok(output_ok)
                 })())
@@ -452,7 +452,7 @@ fn wire__mopro_example_app2__init_app_impl(
         },
     )
 }
-fn wire__mopro_example_app2__mopro_hello_world_impl(
+fn wire__mopro_example_app3__mopro_hello_world_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -477,14 +477,14 @@ fn wire__mopro_example_app2__mopro_hello_world_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(mopro_example_app2::mopro_hello_world())?;
+                    let output_ok = Result::<_, ()>::Ok(mopro_example_app3::mopro_hello_world())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__mopro_wasm_hello_world_impl(
+fn wire__mopro_example_app3__mopro_wasm_hello_world_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -510,14 +510,14 @@ fn wire__mopro_example_app2__mopro_wasm_hello_world_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok =
-                        Result::<_, ()>::Ok(mopro_example_app2::mopro_wasm_hello_world())?;
+                        Result::<_, ()>::Ok(mopro_example_app3::mopro_wasm_hello_world())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__proof_lib_default_impl(
+fn wire__mopro_example_app3__proof_lib_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -542,14 +542,14 @@ fn wire__mopro_example_app2__proof_lib_default_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(mopro_example_app2::ProofLib::default())?;
+                    let output_ok = Result::<_, ()>::Ok(mopro_example_app3::ProofLib::default())?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__mopro_example_app2__verify_circom_proof_impl(
+fn wire__mopro_example_app3__verify_circom_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -573,12 +573,12 @@ fn wire__mopro_example_app2__verify_circom_proof_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_zkey_path = <String>::sse_decode(&mut deserializer);
             let api_proof_result =
-                <mopro_example_app2::CircomProofResult>::sse_decode(&mut deserializer);
-            let api_proof_lib = <mopro_example_app2::ProofLib>::sse_decode(&mut deserializer);
+                <mopro_example_app3::CircomProofResult>::sse_decode(&mut deserializer);
+            let api_proof_lib = <mopro_example_app3::ProofLib>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::verify_circom_proof(
+                    let output_ok = mopro_example_app3::verify_circom_proof(
                         api_zkey_path,
                         api_proof_result,
                         api_proof_lib,
@@ -589,7 +589,7 @@ fn wire__mopro_example_app2__verify_circom_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__verify_gnark_proof_impl(
+fn wire__mopro_example_app3__verify_gnark_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -614,11 +614,11 @@ fn wire__mopro_example_app2__verify_gnark_proof_impl(
             let api__r1cs_path = <String>::sse_decode(&mut deserializer);
             let api__vk_path = <String>::sse_decode(&mut deserializer);
             let api__proof_result =
-                <mopro_example_app2::GnarkProofResult>::sse_decode(&mut deserializer);
+                <mopro_example_app3::GnarkProofResult>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::verify_gnark_proof(
+                    let output_ok = mopro_example_app3::verify_gnark_proof(
                         api__r1cs_path,
                         api__vk_path,
                         api__proof_result,
@@ -629,7 +629,7 @@ fn wire__mopro_example_app2__verify_gnark_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__verify_halo2_proof_impl(
+fn wire__mopro_example_app3__verify_halo2_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -658,7 +658,7 @@ fn wire__mopro_example_app2__verify_halo2_proof_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::verify_halo2_proof(
+                    let output_ok = mopro_example_app3::verify_halo2_proof(
                         api__srs_path,
                         api__vk_path,
                         api__proof,
@@ -670,7 +670,7 @@ fn wire__mopro_example_app2__verify_halo2_proof_impl(
         },
     )
 }
-fn wire__mopro_example_app2__verify_noir_proof_impl(
+fn wire__mopro_example_app3__verify_noir_proof_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -700,7 +700,7 @@ fn wire__mopro_example_app2__verify_noir_proof_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, MoproError>((move || {
-                    let output_ok = mopro_example_app2::verify_noir_proof(
+                    let output_ok = mopro_example_app3::verify_noir_proof(
                         api__circuit_path,
                         api__proof,
                         api__on_chain,
@@ -719,37 +719,37 @@ fn wire__mopro_example_app2__verify_noir_proof_impl(
 #[allow(clippy::unnecessary_literal_unwrap)]
 const _: fn() = || {
     {
-        let CircomProof = None::<mopro_example_app2::CircomProof>.unwrap();
-        let _: mopro_example_app2::G1 = CircomProof.a;
-        let _: mopro_example_app2::G2 = CircomProof.b;
-        let _: mopro_example_app2::G1 = CircomProof.c;
+        let CircomProof = None::<mopro_example_app3::CircomProof>.unwrap();
+        let _: mopro_example_app3::G1 = CircomProof.a;
+        let _: mopro_example_app3::G2 = CircomProof.b;
+        let _: mopro_example_app3::G1 = CircomProof.c;
         let _: String = CircomProof.protocol;
         let _: String = CircomProof.curve;
     }
     {
-        let CircomProofResult = None::<mopro_example_app2::CircomProofResult>.unwrap();
-        let _: mopro_example_app2::CircomProof = CircomProofResult.proof;
+        let CircomProofResult = None::<mopro_example_app3::CircomProofResult>.unwrap();
+        let _: mopro_example_app3::CircomProof = CircomProofResult.proof;
         let _: Vec<String> = CircomProofResult.inputs;
     }
     {
-        let G1 = None::<mopro_example_app2::G1>.unwrap();
+        let G1 = None::<mopro_example_app3::G1>.unwrap();
         let _: String = G1.x;
         let _: String = G1.y;
         let _: String = G1.z;
     }
     {
-        let G2 = None::<mopro_example_app2::G2>.unwrap();
+        let G2 = None::<mopro_example_app3::G2>.unwrap();
         let _: Vec<String> = G2.x;
         let _: Vec<String> = G2.y;
         let _: Vec<String> = G2.z;
     }
     {
-        let GnarkProofResult = None::<mopro_example_app2::GnarkProofResult>.unwrap();
+        let GnarkProofResult = None::<mopro_example_app3::GnarkProofResult>.unwrap();
         let _: String = GnarkProofResult.proof;
         let _: String = GnarkProofResult.public_inputs;
     }
     {
-        let Halo2ProofResult = None::<mopro_example_app2::Halo2ProofResult>.unwrap();
+        let Halo2ProofResult = None::<mopro_example_app3::Halo2ProofResult>.unwrap();
         let _: Vec<u8> = Halo2ProofResult.proof;
         let _: Vec<u8> = Halo2ProofResult.inputs;
     }
@@ -806,15 +806,15 @@ impl SseDecode for bool {
     }
 }
 
-impl SseDecode for mopro_example_app2::CircomProof {
+impl SseDecode for mopro_example_app3::CircomProof {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_a = <mopro_example_app2::G1>::sse_decode(deserializer);
-        let mut var_b = <mopro_example_app2::G2>::sse_decode(deserializer);
-        let mut var_c = <mopro_example_app2::G1>::sse_decode(deserializer);
+        let mut var_a = <mopro_example_app3::G1>::sse_decode(deserializer);
+        let mut var_b = <mopro_example_app3::G2>::sse_decode(deserializer);
+        let mut var_c = <mopro_example_app3::G1>::sse_decode(deserializer);
         let mut var_protocol = <String>::sse_decode(deserializer);
         let mut var_curve = <String>::sse_decode(deserializer);
-        return mopro_example_app2::CircomProof {
+        return mopro_example_app3::CircomProof {
             a: var_a,
             b: var_b,
             c: var_c,
@@ -824,25 +824,25 @@ impl SseDecode for mopro_example_app2::CircomProof {
     }
 }
 
-impl SseDecode for mopro_example_app2::CircomProofResult {
+impl SseDecode for mopro_example_app3::CircomProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_proof = <mopro_example_app2::CircomProof>::sse_decode(deserializer);
+        let mut var_proof = <mopro_example_app3::CircomProof>::sse_decode(deserializer);
         let mut var_inputs = <Vec<String>>::sse_decode(deserializer);
-        return mopro_example_app2::CircomProofResult {
+        return mopro_example_app3::CircomProofResult {
             proof: var_proof,
             inputs: var_inputs,
         };
     }
 }
 
-impl SseDecode for mopro_example_app2::G1 {
+impl SseDecode for mopro_example_app3::G1 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_x = <String>::sse_decode(deserializer);
         let mut var_y = <String>::sse_decode(deserializer);
         let mut var_z = <String>::sse_decode(deserializer);
-        return mopro_example_app2::G1 {
+        return mopro_example_app3::G1 {
             x: var_x,
             y: var_y,
             z: var_z,
@@ -850,13 +850,13 @@ impl SseDecode for mopro_example_app2::G1 {
     }
 }
 
-impl SseDecode for mopro_example_app2::G2 {
+impl SseDecode for mopro_example_app3::G2 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_x = <Vec<String>>::sse_decode(deserializer);
         let mut var_y = <Vec<String>>::sse_decode(deserializer);
         let mut var_z = <Vec<String>>::sse_decode(deserializer);
-        return mopro_example_app2::G2 {
+        return mopro_example_app3::G2 {
             x: var_x,
             y: var_y,
             z: var_z,
@@ -864,24 +864,24 @@ impl SseDecode for mopro_example_app2::G2 {
     }
 }
 
-impl SseDecode for mopro_example_app2::GnarkProofResult {
+impl SseDecode for mopro_example_app3::GnarkProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_proof = <String>::sse_decode(deserializer);
         let mut var_publicInputs = <String>::sse_decode(deserializer);
-        return mopro_example_app2::GnarkProofResult {
+        return mopro_example_app3::GnarkProofResult {
             proof: var_proof,
             public_inputs: var_publicInputs,
         };
     }
 }
 
-impl SseDecode for mopro_example_app2::Halo2ProofResult {
+impl SseDecode for mopro_example_app3::Halo2ProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_proof = <Vec<u8>>::sse_decode(deserializer);
         let mut var_inputs = <Vec<u8>>::sse_decode(deserializer);
-        return mopro_example_app2::Halo2ProofResult {
+        return mopro_example_app3::Halo2ProofResult {
             proof: var_proof,
             inputs: var_inputs,
         };
@@ -942,13 +942,13 @@ impl SseDecode for Option<String> {
     }
 }
 
-impl SseDecode for mopro_example_app2::ProofLib {
+impl SseDecode for mopro_example_app3::ProofLib {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => mopro_example_app2::ProofLib::Arkworks,
-            1 => mopro_example_app2::ProofLib::Rapidsnark,
+            0 => mopro_example_app3::ProofLib::Arkworks,
+            1 => mopro_example_app3::ProofLib::Rapidsnark,
             _ => unreachable!("Invalid variant for ProofLib: {}", inner),
         };
     }
@@ -991,43 +991,43 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        1 => wire__mopro_example_app2__circom_proof_default_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__mopro_example_app2__g_1_default_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__mopro_example_app2__g_2_default_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__mopro_example_app2__generate_circom_groth16_garaga_calldata_impl(
+        1 => wire__mopro_example_app3__circom_proof_default_impl(port, ptr, rust_vec_len, data_len),
+        2 => wire__mopro_example_app3__g_1_default_impl(port, ptr, rust_vec_len, data_len),
+        3 => wire__mopro_example_app3__g_2_default_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__mopro_example_app3__generate_circom_groth16_garaga_calldata_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
         5 => {
-            wire__mopro_example_app2__generate_circom_proof_impl(port, ptr, rust_vec_len, data_len)
+            wire__mopro_example_app3__generate_circom_proof_impl(port, ptr, rust_vec_len, data_len)
         }
-        6 => wire__mopro_example_app2__generate_gnark_proof_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__mopro_example_app2__generate_halo2_proof_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__mopro_example_app2__generate_noir_proof_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__mopro_example_app2__get_noir_verification_key_impl(
+        6 => wire__mopro_example_app3__generate_gnark_proof_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__mopro_example_app3__generate_halo2_proof_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__mopro_example_app3__generate_noir_proof_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__mopro_example_app3__get_noir_verification_key_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        10 => wire__mopro_example_app2__halo_2_proof_result_default_impl(
+        10 => wire__mopro_example_app3__halo_2_proof_result_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        11 => wire__mopro_example_app2__init_app_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__mopro_example_app2__mopro_hello_world_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__mopro_example_app3__init_app_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__mopro_example_app3__mopro_hello_world_impl(port, ptr, rust_vec_len, data_len),
         13 => {
-            wire__mopro_example_app2__mopro_wasm_hello_world_impl(port, ptr, rust_vec_len, data_len)
+            wire__mopro_example_app3__mopro_wasm_hello_world_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__mopro_example_app2__proof_lib_default_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__mopro_example_app2__verify_circom_proof_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__mopro_example_app2__verify_gnark_proof_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__mopro_example_app2__verify_halo2_proof_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__mopro_example_app2__verify_noir_proof_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__mopro_example_app3__proof_lib_default_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__mopro_example_app3__verify_circom_proof_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__mopro_example_app3__verify_gnark_proof_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__mopro_example_app3__verify_halo2_proof_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__mopro_example_app3__verify_noir_proof_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1062,7 +1062,7 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<MoproError>> for MoproError {
 }
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::CircomProof> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::CircomProof> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.a.into_into_dart().into_dart(),
@@ -1075,18 +1075,18 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::CircomProo
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::CircomProof>
+    for FrbWrapper<mopro_example_app3::CircomProof>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::CircomProof>>
-    for mopro_example_app2::CircomProof
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::CircomProof>>
+    for mopro_example_app3::CircomProof
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::CircomProof> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::CircomProof> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::CircomProofResult> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::CircomProofResult> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.proof.into_into_dart().into_dart(),
@@ -1096,18 +1096,18 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::CircomProo
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::CircomProofResult>
+    for FrbWrapper<mopro_example_app3::CircomProofResult>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::CircomProofResult>>
-    for mopro_example_app2::CircomProofResult
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::CircomProofResult>>
+    for mopro_example_app3::CircomProofResult
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::CircomProofResult> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::CircomProofResult> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::G1> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::G1> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.x.into_into_dart().into_dart(),
@@ -1118,18 +1118,18 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::G1> {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::G1>
+    for FrbWrapper<mopro_example_app3::G1>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::G1>>
-    for mopro_example_app2::G1
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::G1>>
+    for mopro_example_app3::G1
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::G1> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::G1> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::G2> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::G2> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.x.into_into_dart().into_dart(),
@@ -1140,18 +1140,18 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::G2> {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::G2>
+    for FrbWrapper<mopro_example_app3::G2>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::G2>>
-    for mopro_example_app2::G2
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::G2>>
+    for mopro_example_app3::G2
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::G2> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::G2> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::GnarkProofResult> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::GnarkProofResult> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.proof.into_into_dart().into_dart(),
@@ -1161,18 +1161,18 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::GnarkProof
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::GnarkProofResult>
+    for FrbWrapper<mopro_example_app3::GnarkProofResult>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::GnarkProofResult>>
-    for mopro_example_app2::GnarkProofResult
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::GnarkProofResult>>
+    for mopro_example_app3::GnarkProofResult
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::GnarkProofResult> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::GnarkProofResult> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::Halo2ProofResult> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::Halo2ProofResult> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.proof.into_into_dart().into_dart(),
@@ -1182,34 +1182,34 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::Halo2Proof
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::Halo2ProofResult>
+    for FrbWrapper<mopro_example_app3::Halo2ProofResult>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::Halo2ProofResult>>
-    for mopro_example_app2::Halo2ProofResult
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::Halo2ProofResult>>
+    for mopro_example_app3::Halo2ProofResult
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::Halo2ProofResult> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::Halo2ProofResult> {
         self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app2::ProofLib> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<mopro_example_app3::ProofLib> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self.0 {
-            mopro_example_app2::ProofLib::Arkworks => 0.into_dart(),
-            mopro_example_app2::ProofLib::Rapidsnark => 1.into_dart(),
+            mopro_example_app3::ProofLib::Arkworks => 0.into_dart(),
+            mopro_example_app3::ProofLib::Rapidsnark => 1.into_dart(),
             _ => unreachable!(),
         }
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<mopro_example_app2::ProofLib>
+    for FrbWrapper<mopro_example_app3::ProofLib>
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app2::ProofLib>>
-    for mopro_example_app2::ProofLib
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<mopro_example_app3::ProofLib>>
+    for mopro_example_app3::ProofLib
 {
-    fn into_into_dart(self) -> FrbWrapper<mopro_example_app2::ProofLib> {
+    fn into_into_dart(self) -> FrbWrapper<mopro_example_app3::ProofLib> {
         self.into()
     }
 }
@@ -1253,26 +1253,26 @@ impl SseEncode for bool {
     }
 }
 
-impl SseEncode for mopro_example_app2::CircomProof {
+impl SseEncode for mopro_example_app3::CircomProof {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <mopro_example_app2::G1>::sse_encode(self.a, serializer);
-        <mopro_example_app2::G2>::sse_encode(self.b, serializer);
-        <mopro_example_app2::G1>::sse_encode(self.c, serializer);
+        <mopro_example_app3::G1>::sse_encode(self.a, serializer);
+        <mopro_example_app3::G2>::sse_encode(self.b, serializer);
+        <mopro_example_app3::G1>::sse_encode(self.c, serializer);
         <String>::sse_encode(self.protocol, serializer);
         <String>::sse_encode(self.curve, serializer);
     }
 }
 
-impl SseEncode for mopro_example_app2::CircomProofResult {
+impl SseEncode for mopro_example_app3::CircomProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <mopro_example_app2::CircomProof>::sse_encode(self.proof, serializer);
+        <mopro_example_app3::CircomProof>::sse_encode(self.proof, serializer);
         <Vec<String>>::sse_encode(self.inputs, serializer);
     }
 }
 
-impl SseEncode for mopro_example_app2::G1 {
+impl SseEncode for mopro_example_app3::G1 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.x, serializer);
@@ -1281,7 +1281,7 @@ impl SseEncode for mopro_example_app2::G1 {
     }
 }
 
-impl SseEncode for mopro_example_app2::G2 {
+impl SseEncode for mopro_example_app3::G2 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<String>>::sse_encode(self.x, serializer);
@@ -1290,7 +1290,7 @@ impl SseEncode for mopro_example_app2::G2 {
     }
 }
 
-impl SseEncode for mopro_example_app2::GnarkProofResult {
+impl SseEncode for mopro_example_app3::GnarkProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.proof, serializer);
@@ -1298,7 +1298,7 @@ impl SseEncode for mopro_example_app2::GnarkProofResult {
     }
 }
 
-impl SseEncode for mopro_example_app2::Halo2ProofResult {
+impl SseEncode for mopro_example_app3::Halo2ProofResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.proof, serializer);
@@ -1353,13 +1353,13 @@ impl SseEncode for Option<String> {
     }
 }
 
-impl SseEncode for mopro_example_app2::ProofLib {
+impl SseEncode for mopro_example_app3::ProofLib {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(
             match self {
-                mopro_example_app2::ProofLib::Arkworks => 0,
-                mopro_example_app2::ProofLib::Rapidsnark => 1,
+                mopro_example_app3::ProofLib::Arkworks => 0,
+                mopro_example_app3::ProofLib::Rapidsnark => 1,
                 _ => {
                     unimplemented!("");
                 }
@@ -1412,7 +1412,7 @@ mod io {
     };
     use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
-    use mopro_example_app2::*;
+    use mopro_example_app3::*;
 
     // Section: boilerplate
 
@@ -1451,7 +1451,7 @@ mod web {
     use flutter_rust_bridge::for_generated::wasm_bindgen::prelude::*;
     use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
-    use mopro_example_app2::*;
+    use mopro_example_app3::*;
 
     // Section: boilerplate
 

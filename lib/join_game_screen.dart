@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:mopro_flutter_bindings/mopro_flutter_bindings.dart';
+import 'package:mopro_flutter_bindings/src/rust/third_party/mopro_example_app3.dart';
 import 'package:starknet/starknet.dart';
 import 'package:starknet_provider/starknet_provider.dart';
 

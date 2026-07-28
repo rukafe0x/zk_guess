@@ -171,7 +171,7 @@ packages:
     source: hosted
     version: "5.0.0"
   flutter_rust_bridge:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_rust_bridge
       sha256: "37ef40bc6f863652e865f0b2563ea07f0d3c58d8efad803cc01933a4b2ee067e"
@@ -453,13 +453,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.5"
-  rust_bridge:
-    dependency: "direct main"
-    description:
-      path: rust_builder
-      relative: true
-    source: path
-    version: "0.0.1"
   sky_engine:
     dependency: transitive
     description: flutter

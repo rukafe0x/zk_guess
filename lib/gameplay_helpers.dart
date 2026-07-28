@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-import 'package:mopro_flutter_bindings/mopro_flutter_bindings.dart';
+import 'package:mopro_flutter_bindings/src/rust/third_party/mopro_example_app3.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:poseidon/poseidon.dart';
 import 'package:starknet/starknet.dart';
@@ -53,8 +53,7 @@ Future<List<Felt>> proveAndBuildGaragaCalldata({
   required BigInt h,
   required BigInt y,
 }) async {
-  final inputs =
-      '{"x":["$x"],"salt":["$salt"],"h":["$h"],"y":["$y"]}';
+  final inputs = '{"x":["$x"],"salt":["$salt"],"h":["$h"],"y":["$y"]}';
   final zkeyPath = await copyAssetToTemp('assets/guess_0001.zkey');
   final proofResult = await generateCircomProof(
     zkeyPath: zkeyPath,
@@ -92,10 +91,8 @@ Future<List<Felt>> proveAndBuildGaragaCalldata({
     }),
   );
   final calldata = (await generateCircomGroth16GaragaCalldata(
-        proofResult: proofResult,
-        verificationKeyJson: vkJson,
-      ))
-      .map((felt) => Felt(BigInt.parse(felt)))
-      .toList();
+    proofResult: proofResult,
+    verificationKeyJson: vkJson,
+  )).map((felt) => Felt(BigInt.parse(felt))).toList();
   return calldata;
 }

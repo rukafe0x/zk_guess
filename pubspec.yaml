@@ -47,9 +47,6 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   avnu_provider:
     path: packages/starknet.dart/packages/avnu_provider
-  flutter_rust_bridge: 2.11.1
-  rust_bridge:
-    path: rust_builder
 
 dev_dependencies:
   flutter_test:
